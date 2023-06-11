@@ -1,178 +1,86 @@
 
-OPENSEARCH_IP := 192.168.100.195
+CLUSTER_IP := 192.168.0.36
 
-APPS := $(wildcard apps/*/.)
+ks-opensearch:
+	cd opensearch/opensearch; kubectl apply -f .
 
-APIS := $(wildcard apps/rest-service*/.)
+ks-dashboards:
+	cd opensearch/dashboards; kubectl apply -f .
 
-env-jaeger-down: services-down
-	cd docker-environment/jaeger ; docker compose \
-		-f docker-compose-jaeger.yml \
-		-f ../docker-compose-db.yml \
-		down
+ks-dashboards-down:
+	-cd opensearch/dashboards; kubectl delete -f .
 
-env-jaeger: env-jaeger-down
-	cd docker-environment/jaeger ; docker compose \
-		-f docker-compose-jaeger.yml \
-		-f ../docker-compose-db.yml \
-		up \
-		-d \
-			--build
+ks-data-prepper:
+	cd opensearch/data-prepper; kubectl apply -f .
 
-env-opensearch-down: services-down
-	cd docker-environment/opensearch ; docker compose \
-		-f docker-compose-opensearch.yml \
-		-f ../docker-compose-db.yml \
-		down
+ks-data-prepper-down: ks-data-prepper-configmap-down
+	-cd opensearch/data-prepper; kubectl delete -f .
 
-env-opensearch: env-opensearch-down
-	cd docker-environment/opensearch ; docker compose \
-		-f docker-compose-opensearch.yml \
-		-f ../docker-compose-db.yml \
-		up \
-		-d \
-			--build
+ks-fluent-bit: ks-fluent-bit-configmap
+	cd opensearch/fluent-bit; kubectl apply -f .
 
-services-opensearch: $(APIS)
-	@echo "Services starting - Opensearch..."
-	for dir in $(APIS); do \
-		$(MAKE) -C $$dir docker-up-opensearch; \
-	done
+ks-postgres:
+	cd postgres; kubectl apply -f .
 
-services-network:
-	-docker network create services_network
+ks-postgres-down:
+	-cd postgres; kubectl delete -f .
 
-services-network-down:
-	-docker network rm services_network
+ks-fluent-bit-down: ks-fluent-bit-configmap-down
+	-cd opensearch/fluent-bit; kubectl delete -f .
 
-services-opensearch-k8s: $(APIS) services-network
-	@echo "WEATHER_APIKEY: $(WEATHER_APIKEY)"
-	@echo "Services starting - Opensearch..."
-	for dir in $(APIS); do \
-		WEATHER_APIKEY=$(WEATHER_APIKEY) $(MAKE) -C $$dir docker-up-opensearch-k8s; \
-	done
+ks-opensearch-down:
+	-cd opensearch/opensearch; kubectl delete -f .
 
-services-jaeger-k8s: $(APIS) services-network
-	@echo "Services starting - Jaeger..."
-	for dir in $(APIS); do \
-		$(MAKE) -C $$dir docker-up-jaeger-k8s WEATHER_APIKEY=$(WEATHER_APIKEY); \
-	done
+ks-data-prepper-configmap:
+	-kubectl create configmap data-prepper-config-files --from-file=opensearch/data-prepper/configs
 
-services-jaeger:
-	@echo "Services starting - Jaeger..."
-	@echo "Services starting - Opensearch..."
-	for dir in $(APIS); do \
-		$(MAKE) -C $$dir docker-up-jaeger; \
-	done
+ks-data-prepper-configmap-down:
+	-kubectl delete configmap data-prepper-config-files
 
-services-down:
-	@echo "Services stopping..."
-	for dir in $(APIS); do \
-		$(MAKE) -C $$dir docker-down; \
-	done
+ks-fluent-bit-configmap:
+	-kubectl create configmap fluent-bit-config-files --from-file=opensearch/fluent-bit/configs
 
-tidy: $(APPS)
-	for dir in $(APPS); do \
-		$(MAKE) -C $$dir tidy; \
-	done
+ks-fluent-bit-configmap-down:
+	-kubectl delete configmap fluent-bit-config-files
 
-lint: $(APPS)
-	for dir in $(APPS); do \
-		echo "linting $$dir..."; \
-		$(MAKE) -C $$dir lint; \
-	done
+ks-opensearch-configmap:
+	-kubectl create configmap opensearch-config-files --from-file=opensearch/opensearch/configs
 
-update-library:
-	$(eval CURR_DIR := $(PWD))
-	$(MAKE) -C apps/rest-service-a update-library
-	$(MAKE) -C apps/rest-service-b update-library
+ks-opensearch-configmap-down:
+	-kubectl delete configmap opensearch-config-files
 
-weather:
-	http http://localhost:8080/weather city=="Rio de Janeiro"
+ks-dashboards-configmap:
+	-kubectl create configmap dashboards-config-files --from-file=opensearch/dashboards/configs
 
-watch-service-a:
-	watch -n 10 'curl -i localhost:8080/weather?city=Rio%20de%20Janeiro -H "Authorization: 854bf4f2-cb7d-11ed-bf82-00155d485640"'
+ks-dashboards-configmap-down:
+	-kubectl delete configmap dashboards-config-files
 
-exporting:
-	docker run \
-		--name data-prepper \
-		--rm \
-		-p 4900:4900 \
-		-v ${PWD}/docker-environment/opensearch/configs/data:/usr/share/data-prepper/data \
-		-v ${PWD}/docker-environment/opensearch/configs/logstash.conf:/usr/share/data-prepper/pipelines/pipelines.conf opensearchproject/data-prepper:latest
+ks-jaeger-collector:
+	cd jaeger/collector; kubectl apply -f .
 
-test-logs:
-	docker run \
-		--rm \
-		--name service_a \
-		--network opensearch_default \
-		-d \
-		-m 16m \
-		-p 8080:8080 \
-		--log-driver=fluentd \
-		--log-opt fluentd-address=localhost:24224 \
-		-e "API_OTEL_TRACE_ENDPOINT=data-prepper:21890" \
-		-e "API_OTEL_METRICS_ENDPOINT=data-prepper:21891" \
-		-e "API_DB_HOST=postgres" \
-		-e "API_DB_PASS=P@ss" \
-		-e "API_TELEMETRY_REST_ENABLE=true" \
-		-e "API_TELEMETRY_DB_ENABLE=true" \
-		-e "API_LOG_LEVEL=trace" \
-			eldius/service-a:dev
+ks-jaeger-collector-down:
+	-cd jaeger/collector; kubectl delete -f .
 
-test:
-	kubectl \
-		run test-alpine \
-		--image=alpine \
-		--env="PS1='[\u@\h \W]\$ '" \
-		-i \
-		--tty \
-		--restart=Never \
-		--command -- sh
+ks-jaeger-agent:
+	cd jaeger/agent; kubectl apply -f .
 
-ks-terraform-opensearch-apply: ks-terraform-opensearch-init
-	cd k3s-environment/terraform ; ELASTICSEARCH_USERNAME=admin \
-		ELASTICSEARCH_PASSWORD=admin \
-		ELASTICSEARCH_URL=https://$(OPENSEARCH_IP):9200 \
-			TF_LOG=debug terraform apply
+ks-jaeger-agent-down:
+	-cd jaeger/agent; kubectl delete -f .
 
-ks-terraform-opensearch-init:
-	cd k3s-environment/terraform ; ELASTICSEARCH_USERNAME=admin \
-		ELASTICSEARCH_PASSWORD=admin \
-		ELASTICSEARCH_URL=https://$(OPENSEARCH_IP):9200 \
-			terraform init
+ks-observability-down:
+	$(MAKE) ks-fluent-bit-down
+	$(MAKE) ks-fluent-bit-configmap-down
+	$(MAKE) ks-data-prepper-down
+	$(MAKE) ks-data-prepper-configmap-down
+	$(MAKE) ks-dashboards-down
+	$(MAKE) ks-dashboards-configmap-down
+	$(MAKE) ks-opensearch-down
+	$(MAKE) ks-opensearch-configmap-down
 
-ks-terraform-opensearch-destroy: ks-terraform-opensearch-init
-	cd k3s-environment/terraform ; ELASTICSEARCH_USERNAME=admin \
-		ELASTICSEARCH_PASSWORD=admin \
-		ELASTICSEARCH_URL=https://$(OPENSEARCH_IP):9200 \
-			terraform destroy
+ks-opensearch-init-indexes:
+	./opensearch/opensearch/scripts/init_indexes.sh
 
-jaeger-test:
-	docker run \
-		--rm \
-		--name jaeger-quyery \
-		-m 16m \
-		-p 16687:16687 \
-		-p 16686:16686 \
-		-e SPAN_STORAGE_TYPE=elasticsearch \
-		-e ES_SERVER_URLS=https://$(OPENSEARCH_IP):9200 \
-		--log-driver=fluentd \
-		--log-opt fluentd-address=192.168.0.36:24224 \
-		-v "$(PWD)/docker-environment/opensearch/configs/root-ca.pem:/root-ca.pem:ro" \
-			jaegertracing/jaeger-query:latest \
-				--es.tls.skip-host-verify \
-				--es.tls.ca "/root-ca.pem" \
-				--admin.http.host-port ":16687" \
-				--es.tls.enabled \
-				--es.username admin \
-				--es.password admin
+ks-dashboards-init-index-patterns:
+	./opensearch/dashboards/scripts/config_index_patterns.sh
 
-	# docker run -d --rm \
-	# -p 16686:16686 \
-	# -p 16687:16687 \
-	# -e SPAN_STORAGE_TYPE=elasticsearch \
-	# -e ES_SERVER_URLS=https://$(OPENSEARCH_IP):9200 \
-	# jaegertracing/jaeger-query:1.18
 
-#jaeger-query
