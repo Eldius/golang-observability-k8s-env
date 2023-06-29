@@ -24,9 +24,9 @@ spec:
             - containerPort: 2021
           resources:
             limits:
-              memory: 256M
+              memory: 768M
             requests:
-              memory: 256M
+              memory: 768M
           volumeMounts:
           # - name: root-ca-pem
           #  mountPath: /usr/share/data-prepper/
