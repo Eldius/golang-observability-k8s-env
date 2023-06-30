@@ -7,6 +7,9 @@ ks-opensearch:
 ks-dashboards:
 	cd opensearch/dashboards; kubectl apply -f .
 
+opensearch-up:
+	./scripts/is_opensearch_up.sh
+
 ks-dashboards-down:
 	-cd opensearch/dashboards; kubectl delete -f .
 
@@ -42,18 +45,6 @@ ks-fluent-bit-configmap:
 
 ks-fluent-bit-configmap-down:
 	-kubectl delete configmap fluent-bit-config-files
-
-ks-opensearch-configmap:
-	-kubectl create configmap opensearch-config-files --from-file=opensearch/opensearch/configs
-
-ks-opensearch-configmap-down:
-	-kubectl delete configmap opensearch-config-files
-
-ks-dashboards-configmap:
-	-kubectl create configmap dashboards-config-files --from-file=opensearch/dashboards/configs
-
-ks-dashboards-configmap-down:
-	-kubectl delete configmap dashboards-config-files
 
 ks-jaeger-collector:
 	cd jaeger/collector; kubectl apply -f .

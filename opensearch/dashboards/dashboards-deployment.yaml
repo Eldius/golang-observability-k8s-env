@@ -28,22 +28,4 @@ spec:
               memory: 512M
             requests:
               memory: 512M
-          startupProbe:
-            exec:
-              command: ["/bin/sh", "-c", "/setup/init_index_patterns.sh"]
-            failureThreshold: 30
-            periodSeconds: 10
-            initialDelaySeconds: 10
-            timeoutSeconds: 9
-          volumeMounts:
-            - name: init-script
-              mountPath: /setup
-      volumes:
-        - name: init-script
-          configMap:
-            name: dashboards-config-files
-            defaultMode: 0777
-            items:
-              - key: init_index_patterns.sh
-                path: init_index_patterns.sh
       restartPolicy: Always
