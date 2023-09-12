@@ -28,15 +28,10 @@ spec:
             requests:
               memory: 768M
           volumeMounts:
-          # - name: root-ca-pem
-          #  mountPath: /usr/share/data-prepper/
-          #  readOnly: true
           - name: data-prepper-config-yaml
             mountPath: /usr/share/data-prepper/config
-            #readOnly: true
           - name: pipelines-yaml
             mountPath: /usr/share/data-prepper/pipelines
-            #readOnly: true
       volumes:
         - name: root-ca-pem
           configMap:

@@ -4,10 +4,6 @@ entry-pipeline:
     otel_trace_source:
       ssl: false
       port: 21890
-  # buffer:
-  #   bounded_blocking:
-  #     buffer_size: 10240
-  #     batch_size: 160
   sink:
     - pipeline:
         name: "raw-pipeline"
@@ -17,16 +13,11 @@ raw-pipeline:
   source:
     pipeline:
       name: "entry-pipeline"
-  # buffer:
-  #   bounded_blocking:
-  #     buffer_size: 10240
-  #     batch_size: 160
   processor:
     - otel_trace_raw:
   sink:
     - opensearch:
         hosts: [ "https://opensearch:9200" ]
-        # cert: "/usr/share/data-prepper/root-ca.pem"
         insecure: true
         username: admin
         password: admin
@@ -36,17 +27,12 @@ service-map-pipeline:
   source:
     pipeline:
       name: "entry-pipeline"
-  # buffer:
-  #   bounded_blocking:
-  #     buffer_size: 10240
-  #     batch_size: 160
   processor:
     - service_map_stateful:
   sink:
     - stdout:
     - opensearch:
         hosts: [ "https://opensearch:9200" ]
-        # cert: "/usr/share/data-prepper/root-ca.pem"
         insecure: true
         username: admin
         password: admin
@@ -63,14 +49,10 @@ metrics-pipeline:
     - stdout:
     - opensearch:
         hosts: [ "https://opensearch:9200" ]
-        # cert: "/usr/share/data-prepper/root-ca.pem"
         insecure: true
         username: admin
         password: admin
         index: "metrics-otel-v1"
-        # index: "metrics-otel-v1-%{yyyy.MM.dd}"
-        # indexAlias: "metrics-otel-v1"
-        # index_type: metrics-analytics-raw
 
 log-pipeline:
   source:
@@ -89,5 +71,3 @@ log-pipeline:
         username: admin
         password: admin
         index: "custom-application-logs"
-        # index: "custom-logs-%{yyyy.MM.dd}"
-        # indexAlias: "custom-logs"

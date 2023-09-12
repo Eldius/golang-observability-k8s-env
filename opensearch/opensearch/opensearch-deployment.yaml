@@ -37,26 +37,10 @@ spec:
               memory: 2G
             requests:
               memory: 1.5G
-          startupProbe:
-            exec:
-              command: ["/bin/sh", "-c", "/setup/init_indexes.sh"]
-            failureThreshold: 30
-            periodSeconds: 30
-            initialDelaySeconds: 30
-            timeoutSeconds: 20
           volumeMounts:
-            - name: init-script
-              mountPath: /setup
             - mountPath: "/usr/share/opensearch/data"
               name: opensearch-pv-storage
       volumes:
-        - name: init-script
-          configMap:
-            name: opensearch-config-files
-            defaultMode: 0777
-            items:
-              - key: init_indexes.sh
-                path: init_indexes.sh
         - name: opensearch-pv-storage
           persistentVolumeClaim:
             claimName: opensearch-pv-claim
