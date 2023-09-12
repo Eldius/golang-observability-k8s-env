@@ -68,6 +68,10 @@ ks-jaeger-agent-down:
 	-cd jaeger/agent; kubectl delete -f .
 
 ks-observability-down:
+	@echo "-----"
+	@echo "Destroying infraestructure"
+	@echo "-----"
+	@echo ""
 	$(MAKE) ks-fluent-bit-down
 	$(MAKE) ks-fluent-bit-configmap-down
 	$(MAKE) ks-data-prepper-down
@@ -76,6 +80,10 @@ ks-observability-down:
 	$(MAKE) ks-dashboards-configmap-down
 	$(MAKE) ks-opensearch-down
 	$(MAKE) ks-opensearch-configmap-down
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
 
 ks-opensearch-init-indexes:
 	./opensearch/opensearch/scripts/init_indexes.sh
@@ -84,3 +92,63 @@ ks-dashboards-init-index-patterns:
 	./opensearch/dashboards/scripts/config_index_patterns.sh
 
 
+terraform-opensearch-log-indexes:
+	cd terraform/log-indexes; terraform init
+	cd terraform/log-indexes; terraform apply -auto-approve
+
+ks-wait-opensearch-startup:
+	until curl --fail -i --insecure -XGET https://$(CLUSTER_HOST)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
+	@echo "Opensearch up and running"
+
+ks-setup: ks-observability-down
+
+	@echo "-----"
+	@echo "Creating Opensearch configmap"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-opensearch-configmap
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Creating Opensearch"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-opensearch
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Waiting Opensearch startup"
+	@echo "-----"
+	$(MAKE) ks-wait-opensearch-startup
+	@echo ""
+	
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Running Opensearch indexes Terraform script"
+	@echo "-----"
+	@echo ""
+	$(MAKE) terraform-opensearch-log-indexes
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Creating Dashboards configmap"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-dashboards-configmap
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""

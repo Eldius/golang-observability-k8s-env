@@ -8,7 +8,12 @@ echo "## creating index ##"
 echo "####################"
 echo ""
 
-curl -i --insecure -XGET https://${CLUSTER_HOST}/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'
+# curl -i --insecure -XGET https://${CLUSTER_HOST}/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'
+until curl --fail -i --insecure -XGET https://${CLUSTER_HOST}/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'
+do
+    echo "Waiting to Opensearch to startup"
+    sleep 1
+done
 
 echo ""
 echo "############################"
