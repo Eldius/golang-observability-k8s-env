@@ -69,7 +69,6 @@ ks-observability-down:
 	$(MAKE) ks-data-prepper-configmap-down
 	$(MAKE) ks-dashboards-down
 	$(MAKE) ks-opensearch-down
-	$(MAKE) ks-opensearch-configmap-down
 	@echo "*****"
 	@echo ""
 	@echo ""
@@ -92,16 +91,6 @@ ks-wait-fluent-bit-startup:
 	@echo "FluentBit up and running"
 
 ks-setup: ks-observability-down
-
-	@echo "-----"
-	@echo "Creating Opensearch configmap"
-	@echo "-----"
-	@echo ""
-	$(MAKE) ks-opensearch-configmap
-	@echo "*****"
-	@echo ""
-	@echo ""
-	@echo ""
 
 	@echo "-----"
 	@echo "Creating Opensearch"
