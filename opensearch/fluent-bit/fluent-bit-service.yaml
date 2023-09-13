@@ -10,6 +10,9 @@ spec:
     - name: "24224"
       port: 24224
       targetPort: 24224
+    - name: "24220"
+      port: 24220
+      targetPort: 24220
   type: LoadBalancer
   selector:
     app: fluent-bit
