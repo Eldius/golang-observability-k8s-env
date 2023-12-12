@@ -15,7 +15,7 @@ terraform {
 
 provider "opensearch" {
   # Configuration options
-  url      = "https://192.168.100.195:9200"
+  url      = "https://192.168.100.196:9200"
   username = "admin"
   password = "admin"
   insecure = true
@@ -31,5 +31,6 @@ resource "opensearch_index" "logs" {
       "is_write_index" = true
     }
   })
-  mappings           = file("${path.module}/mappings/log-index.json")
+  # mappings           = file("${path.module}/mappings/log-index.json")
+  mappings           = "{}"
 }

@@ -1,5 +1,5 @@
 
-CLUSTER_IP := 192.168.100.195
+CLUSTER_IP := 192.168.100.196
 
 ks-opensearch:
 	cd opensearch/opensearch; kubectl apply -f .
