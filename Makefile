@@ -250,3 +250,30 @@ up:
 
 down:
 	$(MAKE) ks-observability-down-opensearch
+
+
+# test:
+# 	# docker run -it --rm --name jdk -v temp:/data openjdk:17 keytool -h
+# 	docker \
+# 		run \
+# 		-it \
+# 		--rm \
+# 		--name jdk \
+# 		-v $(PWD)/.truststore:/data \
+# 		-v $(PWD)/opensearch/data-prepper/configs/root-ca.pem:/certificate/root-ca.pem:ro \
+# 		 openjdk:17-alpine \
+# 		'apk add --update openssl && openssl x509 -outform der -in /certificate/root-ca.pem -out /data/certificate.der && keytool -genkey -alias bmc -keyalg RSA -keystore /data/KeyStore.jks -keysize 2048 && -import -file /data/certificate.der -keystore /data/KeyStore.jks'
+# 	ls -lha temp
+
+# .truststore/KeyStore.jks:
+test:
+	docker \
+		run \
+		-it \
+		--rm \
+		--name jdk \
+		-v $(PWD)/.truststore:/data \
+		-v $(PWD)/opensearch/data-prepper/configs/root-ca.pem:/certificate/root-ca.pem:ro \
+		-v $(PWD)/skywalking/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
+		--entrypoint /opensearch_certificate.sh \
+		 openjdk:17-alpine

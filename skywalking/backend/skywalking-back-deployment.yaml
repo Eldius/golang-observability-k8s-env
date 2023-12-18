@@ -22,6 +22,8 @@ spec:
               value: "elasticsearch"
             - name: "SW_STORAGE_ES_CLUSTER_NODES"
               value: "opensearch:9200"
+            - name: "SW_STORAGE_ES_HTTP_PROTOCOL"
+              value: "https"
             - name: "SW_OTEL_RECEIVER"
               value: "default"
             - name: "SW_ES_USER"
@@ -52,4 +54,14 @@ spec:
           #     port: 8123
           #   initialDelaySeconds: 15
           #   periodSeconds: 30
+          volumeMounts:
+          - name: root-ca-pem
+            mountPath: /usr/share/certs
+      volumes:
+        - name: root-ca-pem
+          configMap:
+            name: data-prepper-config-files
+            items:
+            - key: root-ca.pem
+              path: root-ca.pem
       restartPolicy: Always
