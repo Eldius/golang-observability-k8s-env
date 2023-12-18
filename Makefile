@@ -58,7 +58,7 @@ ks-jaeger-agent:
 ks-jaeger-agent-down:
 	-cd jaeger/agent; kubectl delete -f .
 
-ks-observability-down:
+ks-observability-down-opensearch:
 	@echo "-----"
 	@echo "Destroying infraestructure"
 	@echo "-----"
@@ -90,7 +90,7 @@ ks-wait-fluent-bit-startup:
 	until curl -i --fail -XGET 'http://$(CLUSTER_IP):24220/' -s -o /dev/null; do sleep 1; done
 	@echo "FluentBit up and running"
 
-ks-setup: ks-observability-down
+ks-setup-opensearch: ks-observability-down-opensearch
 
 	@echo "-----"
 	@echo "Creating Opensearch"
@@ -138,17 +138,6 @@ ks-setup: ks-observability-down
 	@echo "-----"
 	@echo ""
 	$(MAKE) ks-wait-dashboards-startup
-	@echo ""
-	@echo "*****"
-	@echo ""
-	@echo ""
-	@echo ""
-
-	@echo "-----"
-	@echo "Waiting Dashboards startup"
-	@echo "-----"
-	@echo ""
-	$(MAKE) terraform-dashboards-log-patterns
 	@echo ""
 	@echo "*****"
 	@echo ""
@@ -237,8 +226,27 @@ terraform-dashboards-log-patterns:
 	cd terraform/index-patterns; terraform init
 	cd terraform/index-patterns; terraform apply -auto-approve
 
+# ks-uptrace-clickhouse-configmap: ks-uptrace-clickhouse-configmap-down
+# 	kubectl create configmap uptrace-clickhouse-config-files --from-file=uptrace/clickhouse/config
+
+# ks-uptrace-clickhouse-configmap-down:
+# 	-kubectl delete configmap uptrace-clickhouse-config-files
+
+# ks-uptrace-clickhouse:
+# 	cd uptrace/clickhouse; kubectl apply -f .
+
+# ks-uptrace-clickhouse-down:
+# 	cd uptrace/clickhouse; kubectl delete -f .
+
+ks-skywalking:
+	cd skywalking/backend; kubectl apply -f .
+
+ks-skywalking-down:
+	cd skywalking/backend; kubectl delete -f .
+
+
 up:
-	$(MAKE) ks-setup
+	$(MAKE) ks-setup-opensearch
 
 down:
-	$(MAKE) ks-observability-down
+	$(MAKE) ks-observability-down-opensearch

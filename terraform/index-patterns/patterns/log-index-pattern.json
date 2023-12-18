@@ -6,7 +6,7 @@
             "type": "index-pattern",
             "index-pattern": {
                 "title": "application-logs",
-                "timeFieldName": "timestamp"
+                "timeFieldName": "time"
             }
         }
     }

@@ -1,0 +1,32 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skywalkingui-deployment
+  labels:
+    app: skywalkingui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: skywalkingui
+  template:
+    metadata:
+      labels:
+        app: skywalkingui
+    spec:
+      containers:
+        - name: skywalking-ui
+          env:
+            - name: "SW_OAP_ADDRESS"
+              value: "http://skywalking:12800"
+            - name: "SW_ZIPKIN_ADDRESS"
+              value: "http://skywalking:9412"
+            - name: "SW_SERVER_PORT"
+              value: "8080"
+          image: apache/skywalking-ui:latest
+          resources:
+            limits:
+              memory: 256M
+            requests:
+      restartPolicy: Always

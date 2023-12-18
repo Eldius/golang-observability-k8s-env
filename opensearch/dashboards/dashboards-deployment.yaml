@@ -28,4 +28,24 @@ spec:
               memory: 512M
             requests:
               memory: 512M
+          startupProbe:
+            httpGet:
+              path: /app/home
+              port: 5601
+              scheme: HTTP
+              httpHeaders:
+                - name: Authorization
+                  value: Basic YWRtaW46YWRtaW4=
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /app/home
+              port: 5601
+              scheme: HTTP
+              httpHeaders:
+                - name: Authorization
+                  value: Basic YWRtaW46YWRtaW4=
+            initialDelaySeconds: 30
+            periodSeconds: 30
       restartPolicy: Always

@@ -31,6 +31,6 @@ resource "opensearch_index" "logs" {
       "is_write_index" = true
     }
   })
-  # mappings           = file("${path.module}/mappings/log-index.json")
-  mappings           = "{}"
+  mappings           = file("${path.module}/mappings/log-index.json")
+  # mappings           = "{}"
 }

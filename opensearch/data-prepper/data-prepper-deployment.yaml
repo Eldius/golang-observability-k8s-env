@@ -32,6 +32,26 @@ spec:
             mountPath: /usr/share/data-prepper/config
           - name: pipelines-yaml
             mountPath: /usr/share/data-prepper/pipelines
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 2021
+              scheme: HTTP
+              httpHeaders:
+                - name: Authorization
+                  value: Basic YWRtaW46YWRtaW4=
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 2021
+              scheme: HTTP
+              httpHeaders:
+                - name: Authorization
+                  value: Basic YWRtaW46YWRtaW4=
+            initialDelaySeconds: 30
+            periodSeconds: 30
       volumes:
         - name: root-ca-pem
           configMap:

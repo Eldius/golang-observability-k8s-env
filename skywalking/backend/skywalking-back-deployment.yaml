@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skywalking-deployment
+  labels:
+    app: skywalking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: skywalking
+  template:
+    metadata:
+      labels:
+        app: skywalking
+    spec:
+      containers:
+        - name: skywalking
+          env:
+            - name: "SW_STORAGE"
+              value: "elasticsearch"
+            - name: "SW_STORAGE_ES_CLUSTER_NODES"
+              value: "opensearch:9200"
+            - name: "SW_OTEL_RECEIVER"
+              value: "default"
+            - name: "SW_ES_USER"
+              value: "admin"
+            - name: "SW_ES_PASSWORD"
+              value: "admin"
+          image: apache/skywalking-oap-server:9.7.0
+          ports:
+            - containerPort: 11800
+            - containerPort: 12800
+            # - containerPort: 9440
+          resources:
+            limits:
+              memory: 1G
+            requests:
+              memory: 1G
+          # livenessProbe:
+          #   httpGet:
+          #     path: /ping
+          #     port: 8123
+          #   failureThreshold: 1
+          #   periodSeconds: 30
+          #   # Override pod-level terminationGracePeriodSeconds #
+          #   # terminationGracePeriodSeconds: 60
+          # startupProbe:
+          #   httpGet:
+          #     path: /ping
+          #     port: 8123
+          #   initialDelaySeconds: 15
+          #   periodSeconds: 30
+      restartPolicy: Always

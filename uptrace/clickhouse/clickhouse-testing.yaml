@@ -1,0 +1,71 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clickhouse-deployment-testing
+  labels:
+    app: clickhouse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse
+  template:
+    metadata:
+      labels:
+        app: clickhouse
+    spec:
+      containers:
+        - name: clickhouse-testing
+          env:
+            - name: CLICKHOUSE_DB
+              value: "uptrace"
+            - name: SHARD
+              value: "shard1"
+            - name: REPLICA
+              value: "replica1"
+            - name: KEEPER_ID
+              value: "1"
+          # image: registry.k8s.io/busybox
+          # command: ["/bin/sh", "-c", "ls", "/etc/"]
+          # command: ["/bin/sh", "-c", "ls", "-lha", "/etc/"]
+          image: alpine
+          # command: ["/bin/sh", "-c", "trap : TERM INT; sleep 9999999999d & wait"]
+          # command: ["/bin/sh", "-c", "ls", "-lha", "/etc/"]
+          # image: busybox
+          # ports:
+          # - containerPort: 80
+          command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 5 ; done"]
+
+          resources:
+            limits:
+              memory: 256M
+            requests:
+              memory: 256M
+          volumeMounts:
+          - name: config-files
+            mountPath: /etc/clickhouse-server/config.d/
+          # - name: cluster.xml
+          #   mountPath: /etc/clickhouse-server/config.d/
+          # - name: keeper.xml
+          #   mountPath: /etc/clickhouse-server/config.d/
+          # - name: users.xml
+          #   mountPath: /etc/clickhouse-server/config.d/
+          # lifecycle:
+          #   postStart:
+          #     exec:
+          #       command: ["/bin/sh", "-c", "ls", "-lha", "/etc/clickhouse-server/config.d/"]
+      volumes:
+        - name: config-files
+          configMap:
+            name: uptrace-clickhouse-config-files
+            items:
+            - key: config.xml
+              path: config.xml
+            - key: cluster.xml
+              path: cluster.xml
+            - key: keeper.xml
+              path: keeper.xml
+            - key: users.xml
+              path: users.xml
+      # restartPolicy: Never

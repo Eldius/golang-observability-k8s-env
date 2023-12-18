@@ -1,0 +1,73 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clickhouse-deployment
+  labels:
+    app: clickhouse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse
+  template:
+    metadata:
+      labels:
+        app: clickhouse
+    spec:
+      containers:
+        - name: clickhouse
+          env:
+            - name: CLICKHOUSE_DB
+              value: "uptrace"
+            - name: SHARD
+              value: "shard1"
+            - name: REPLICA
+              value: "replica1"
+            - name: KEEPER_ID
+              value: "1"
+          image: clickhouse/clickhouse-server:23.7
+          ports:
+            - containerPort: 8123
+            - containerPort: 9000
+            - containerPort: 9440
+          resources:
+            limits:
+              memory: 2G
+            requests:
+              memory: 2G
+          volumeMounts:
+          - name: config-xml
+            mountPath: /etc/clickhouse-server/config.d/
+          - name: users-xml
+            mountPath: /etc/clickhouse-server/users/
+
+          # livenessProbe:
+          #   httpGet:
+          #     path: /ping
+          #     port: 8123
+          #   failureThreshold: 1
+          #   periodSeconds: 30
+          #   # Override pod-level terminationGracePeriodSeconds #
+          #   # terminationGracePeriodSeconds: 60
+          # startupProbe:
+          #   httpGet:
+          #     path: /ping
+          #     port: 8123
+          #   initialDelaySeconds: 15
+          #   periodSeconds: 30
+
+      volumes:
+        - name: config-xml
+          configMap:
+            name: uptrace-clickhouse-config-files
+            items:
+            - key: config.xml
+              path: config.xml
+        - name: users-xml
+          configMap:
+            name: uptrace-clickhouse-config-files
+            items:
+            - key: users.xml
+              path: users.xml
+      restartPolicy: Always

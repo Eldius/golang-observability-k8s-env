@@ -40,6 +40,27 @@ spec:
           volumeMounts:
             - mountPath: "/usr/share/opensearch/data"
               name: opensearch-pv-storage
+          startupProbe:
+            httpGet:
+              path: /_cluster/health
+              port: 9200
+              scheme: HTTPS
+              httpHeaders:
+                - name: Authorization
+                  value: Basic YWRtaW46YWRtaW4=
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: 9200
+              scheme: HTTPS
+              httpHeaders:
+                - name: Authorization
+                  value: Basic YWRtaW46YWRtaW4=
+            initialDelaySeconds: 30
+            periodSeconds: 30
+
       volumes:
         - name: opensearch-pv-storage
           persistentVolumeClaim:
