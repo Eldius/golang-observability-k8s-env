@@ -30,6 +30,10 @@ spec:
               value: "admin"
             - name: "SW_ES_PASSWORD"
               value: "admin"
+            - name: "SW_STORAGE_ES_SSL_JKS_PATH"
+              value: "/usr/share/certs/KeyStore.jks"
+            - name: "SW_STORAGE_ES_SSL_JKS_PASS"
+              value: "changeit"
           image: apache/skywalking-oap-server:9.7.0
           ports:
             - containerPort: 11800
@@ -55,13 +59,13 @@ spec:
           #   initialDelaySeconds: 15
           #   periodSeconds: 30
           volumeMounts:
-          - name: root-ca-pem
+          - name: truststore
             mountPath: /usr/share/certs
       volumes:
-        - name: root-ca-pem
+        - name: truststore
           configMap:
-            name: data-prepper-config-files
+            name: skywalking-config-files
             items:
-            - key: root-ca.pem
-              path: root-ca.pem
+            - key: KeyStore.jks
+              path: KeyStore.jks
       restartPolicy: Always

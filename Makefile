@@ -238,10 +238,10 @@ terraform-dashboards-log-patterns:
 # ks-uptrace-clickhouse-down:
 # 	cd uptrace/clickhouse; kubectl delete -f .
 
-ks-skywalking:
+ks-skywalking: ks-skywalking-configmap
 	cd skywalking/backend; kubectl apply -f .
 
-ks-skywalking-down:
+ks-skywalking-down: ks-skywalking-configmap-down
 	cd skywalking/backend; kubectl delete -f .
 
 
@@ -277,3 +277,10 @@ test:
 		-v $(PWD)/skywalking/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
 		--entrypoint /opensearch_certificate.sh \
 		 openjdk:17-alpine
+
+
+ks-skywalking-configmap: ks-skywalking-configmap-down
+	-kubectl create configmap skywalking-config-files --from-file=skywalking/backend/config
+
+ks-skywalking-configmap-down:
+	-kubectl delete configmap skywalking-config-files
