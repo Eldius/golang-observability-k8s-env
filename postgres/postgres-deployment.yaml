@@ -20,16 +20,28 @@ spec:
         image: postgres
         env:
         - name: POSTGRES_USER
-          value: rest_api
+          value: root
         - name: POSTGRES_DB
-          value: rest_api
+          value: root
         - name: POSTGRES_PASSWORD
           value: P@ss
         ports:
           - containerPort: 5432
+        volumeMounts:
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d/
         resources:
           limits:
             memory: 256M
           requests:
             memory: 256M
       restartPolicy: Always
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: postgres-init-scripts
+            items:
+            - key: 001_creating_app_db.sql
+              path: 001_creating_app_db.sql
+            - key: 002_creating_skywalking_db.sql
+              path: 002_creating_skywalking_db.sql

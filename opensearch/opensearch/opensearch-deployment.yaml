@@ -29,6 +29,8 @@ spec:
               value: "true"
             - name: discovery.type
               value: single-node
+            - name: plugins.security.ssl.transport.enforce_hostname_verification
+              value: "false"
           ports:
             - containerPort: 9200
             - containerPort: 9600

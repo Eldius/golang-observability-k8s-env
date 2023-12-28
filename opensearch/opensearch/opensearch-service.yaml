@@ -18,3 +18,15 @@ spec:
     app: opensearch
 status:
   loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-0.example.com
+spec:
+  selector:
+    name: opensearch
+  clusterIP: None
+  ports:
+  - name: "9200"
+    port: 9200

@@ -40,3 +40,7 @@ curl --insecure -XGET 'http://192.168.100.195:5601/api/saved_objects/_find?type=
 curl --insecure -XGET 'http://192.168.100.195:9200/custom-application-logs-00001' -u 'admin:admin'
 
 ```
+
+## reference links ##
+
+- [Generating self-signed certificates - OpenSearch](https://opensearch.org/docs/latest/security/configuration/generate-certificates/)

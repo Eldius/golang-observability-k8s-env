@@ -1,0 +1,4 @@
+
+CREATE DATABASE skywalking;
+CREATE USER skywalking WITH ENCRYPTED PASSWORD 'StrongP@ss';
+GRANT ALL PRIVILEGES ON DATABASE skywalking TO skywalking;
