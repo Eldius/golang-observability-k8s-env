@@ -29,8 +29,23 @@ spec:
               value: "true"
             - name: discovery.type
               value: single-node
+            - name: plugins.security.ssl.transport.pemcert_filepath
+              value: /usr/share/opensearch/config/certs/node1.pem
+            - name: plugins.security.ssl.transport.pemkey_filepath
+              value: /usr/share/opensearch/config/certs/node1-key.pem
+            - name: plugins.security.ssl.transport.pemtrustedcas_filepath
+              value: /usr/share/opensearch/config/certs/root-ca.pem
+            - name: plugins.security.ssl.http.pemcert_filepath
+              value: /usr/share/opensearch/config/certs/node1.pem
+            - name: plugins.security.ssl.http.pemkey_filepath
+              value: /usr/share/opensearch/config/certs/node1-key.pem
+            - name: plugins.security.ssl.http.pemtrustedcas_filepath
+              value: /usr/share/opensearch/config/certs/root-ca.pem
             - name: plugins.security.ssl.transport.enforce_hostname_verification
               value: "false"
+            - name: plugins.security.ssl.http.enabled
+              value: "true"
+
           ports:
             - containerPort: 9200
             - containerPort: 9600
@@ -40,8 +55,10 @@ spec:
             requests:
               memory: 1.5G
           volumeMounts:
-            - mountPath: "/usr/share/opensearch/data"
-              name: opensearch-pv-storage
+            - name: opensearch-pv-storage
+              mountPath: "/usr/share/opensearch/data"
+            - name: opensearch-certificates
+              mountPath: /usr/share/opensearch/config/certs
           startupProbe:
             httpGet:
               path: /_cluster/health
@@ -67,4 +84,27 @@ spec:
         - name: opensearch-pv-storage
           persistentVolumeClaim:
             claimName: opensearch-pv-claim
+        - name: opensearch-certificates
+          configMap:
+            name: opensearch-certs
+            items:
+            - key: admin-key.pem
+              path: admin-key.pem
+            - key: admin.pem
+              path: admin.pem
+            - key: client-key.pem
+              path: client-key.pem
+            - key: client.pem
+              path: client.pem
+            - key: node1-key.pem
+              path: node1-key.pem
+            - key: node1.pem
+              path: node1.pem
+            - key: root-ca-key.pem
+              path: root-ca-key.pem
+            - key: root-ca.pem
+              path: root-ca.pem
+            - key: root-ca.srl
+              path: root-ca.srl
       restartPolicy: Always
+

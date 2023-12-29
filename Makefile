@@ -4,6 +4,12 @@ CLUSTER_IP := 192.168.100.196
 ks-opensearch:
 	cd opensearch/opensearch; kubectl apply -f .
 
+ks-opensearch-configmap:
+	-kubectl create configmap opensearch-certs --from-file=opensearch/opensearch/certs
+
+ks-opensearch-configmap-down:
+	-kubectl delete configmap opensearch-certs
+
 ks-dashboards:
 	cd opensearch/dashboards; kubectl apply -f .
 
@@ -75,6 +81,7 @@ ks-observability-down-opensearch:
 	$(MAKE) ks-data-prepper-configmap-down
 	$(MAKE) ks-dashboards-down
 	$(MAKE) ks-opensearch-down
+	$(MAKE) ks-opensearch-configmap-down
 	@echo "*****"
 	@echo ""
 	@echo ""
@@ -97,6 +104,16 @@ ks-wait-fluent-bit-startup:
 	@echo "FluentBit up and running"
 
 ks-setup-opensearch: ks-observability-down-opensearch
+
+	@echo "-----"
+	@echo "Creating Opensearch configmap"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-opensearch-configmap
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
 
 	@echo "-----"
 	@echo "Creating Opensearch"
@@ -271,18 +288,56 @@ down:
 # 		'apk add --update openssl && openssl x509 -outform der -in /certificate/root-ca.pem -out /data/certificate.der && keytool -genkey -alias bmc -keyalg RSA -keystore /data/KeyStore.jks -keysize 2048 && -import -file /data/certificate.der -keystore /data/KeyStore.jks'
 # 	ls -lha temp
 
-# .truststore/KeyStore.jks:
-test:
+clear-certs-temp-folder:
+	-rm -rf .truststore
+
+opensearch-certs: clear-certs-temp-folder
+	$(eval USER_ID := $(shell id -u $(USER)))
 	docker \
 		run \
 		-it \
 		--rm \
 		--name jdk \
 		-v $(PWD)/.truststore:/data \
-		-v $(PWD)/opensearch/data-prepper/configs/root-ca.pem:/certificate/root-ca.pem:ro \
-		-v $(PWD)/skywalking/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
+		-e "USER_ID=$(USER_ID)" \
+		-v $(PWD)/skywalking/opensearch_certificate.test.sh:/opensearch_certificate.sh:ro \
 		--entrypoint /opensearch_certificate.sh \
 		 openjdk:17-alpine
+	cp -v $(PWD)/.truststore/* $(PWD)/opensearch/opensearch/certs
+
+
+skywalking-truststore: clear-certs-temp-folder
+	$(eval USER_ID := $(shell id -u $(USER)))
+	docker \
+		run \
+		-it \
+		--rm \
+		--name jdk \
+		-v $(PWD)/.truststore:/data \
+		-v $(PWD)/opensearch/opensearch/certs/root-ca.pem:/certificate/root-ca.pem:ro \
+		-v $(PWD)/opensearch/opensearch/certs/node1.pem:/certificate/node1.pem:ro \
+		-v $(PWD)/opensearch/opensearch/certs/client.pem:/certificate/client.pem:ro \
+		-v $(PWD)/skywalking/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
+		-e "USER_ID=$(USER_ID)" \
+		--entrypoint /opensearch_certificate.sh \
+		 openjdk:17-alpine
+	cp -v $(PWD)/.truststore/KeyStore.jks $(PWD)/skywalking/backend/config
+
+
+test:
+	$(eval USER_ID := $(shell id -u $(USER)))
+	docker \
+		run \
+		-it \
+		--rm \
+		--name jdk \
+		-v $(PWD)/.truststore:/data \
+		-v $(PWD)/opensearch/opensearch/certs/root-ca.pem:/certificate/root-ca.pem:ro \
+		-v $(PWD)/opensearch/opensearch/certs/node1.pem:/certificate/node1.pem:ro \
+		-v $(PWD)/opensearch/opensearch/certs/client.pem:/certificate/client.pem:ro \
+		-v $(PWD)/skywalking/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
+		-e "USER_ID=$(USER_ID)" \
+		 openjdk:17-alpine ash
 
 
 ks-skywalking-configmap: ks-skywalking-configmap-down
