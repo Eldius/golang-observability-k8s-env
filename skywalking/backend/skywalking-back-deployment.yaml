@@ -38,6 +38,12 @@ spec:
               value: "default"
             - name: JAVA_OPTS
               value: "-Xms1536M -Xmx1536M"
+            - name: SW_OTEL_RECEIVER_ENABLED_HANDLERS
+              value: otlp-metrics,otlp-logs,otlp-traces
+            - name: SW_RECEIVER_ZIPKIN
+              value: default
+            - name: SW_QUERY_ZIPKIN
+              value: default
           image: apache/skywalking-oap-server:9.7.0
           ports:
             - containerPort: 11800

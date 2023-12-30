@@ -28,13 +28,13 @@ ks-data-prepper-down: ks-data-prepper-configmap-down
 ks-fluent-bit:
 	cd opensearch/fluent-bit; kubectl apply -f .
 
-ks-postgres-configmap:
+ks-postgres-configmap: ks-postgres-configmap-down
 	-kubectl create configmap postgres-init-scripts --from-file=postgres/scripts
 
 ks-postgres-configmap-down:
 	-kubectl delete configmap postgres-init-scripts
 
-ks-postgres:
+ks-postgres: ks-postgres-down ks-postgres-configmap
 	cd postgres; kubectl apply -f .
 
 ks-postgres-down:
