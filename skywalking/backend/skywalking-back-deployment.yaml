@@ -42,7 +42,6 @@ spec:
           ports:
             - containerPort: 11800
             - containerPort: 12800
-            # - containerPort: 9440
           resources:
             limits:
               memory: 2G

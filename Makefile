@@ -268,6 +268,13 @@ ks-skywalking-down: ks-skywalking-configmap-down
 	-cd skywalking/backend; kubectl delete -f .
 
 
+ks-skywalkingui:
+	cd skywalking/frontend; kubectl apply -f .
+
+ks-skywalkingui-down:
+	-cd skywalking/frontend; kubectl delete -f .
+
+
 up:
 	$(MAKE) ks-setup-opensearch
 

@@ -25,8 +25,11 @@ spec:
             - name: "SW_SERVER_PORT"
               value: "8080"
           image: apache/skywalking-ui:latest
+          ports:
+            - containerPort: 8080
           resources:
             limits:
-              memory: 256M
+              memory: 512M
             requests:
+              memory: 512M
       restartPolicy: Always
