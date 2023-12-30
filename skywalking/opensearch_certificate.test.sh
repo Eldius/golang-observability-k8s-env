@@ -29,7 +29,7 @@ openssl genrsa \
         -x509 \
         -sha256 \
         -key root-ca-key.pem \
-        -subj "/C=BR/ST=Rio de Janeiro/L=RJ/O=ORG/OU=UNIT/CN=opensearch.dns.a-record" \
+        -subj "/C=BR/ST=Rio de Janeiro/L=RJ/O=ORG/OU=UNIT/CN=opensearch" \
         -out root-ca.pem \
         -days 730 || exit 1
 
@@ -52,7 +52,7 @@ openssl genrsa \
     openssl req \
         -new \
         -key admin-key.pem \
-        -subj "/C=BR/ST=Rio de Janeiro/L=RJ/O=ORG/OU=UNIT/CN=opensearch.dns.a-record" \
+        -subj "/C=BR/ST=Rio de Janeiro/L=RJ/O=ORG/OU=UNIT/CN=opensearch" \
         -out admin.csr && \
     openssl x509 \
         -req \
@@ -84,8 +84,8 @@ openssl genrsa \
         -new \
         -key node1-key.pem \
         -out node1.csr \
-        -subj "/C=BR/ST=Rio de Janeiro/L=RJ/O=ORG/OU=UNIT/CN=opensearch.dns.a-record" && \
-    echo 'subjectAltName=DNS:opensearch.dns.a-record' > node1.ext && \
+        -subj "/C=BR/ST=Rio de Janeiro/L=RJ/O=ORG/OU=UNIT/CN=opensearch" && \
+    echo 'subjectAltName=DNS:opensearch' > node1.ext && \
     openssl x509 \
         -req \
         -in node1.csr \
@@ -117,9 +117,9 @@ openssl genrsa \
     openssl req \
         -new \
         -key client-key.pem \
-        -subj "/C=BR/ST=Rio de Janeiro/L=RJ/O=ORG/OU=UNIT/CN=opensearch.dns.a-record" \
+        -subj "/C=BR/ST=Rio de Janeiro/L=RJ/O=ORG/OU=UNIT/CN=opensearch" \
         -out client.csr
-echo 'subjectAltName=DNS:client.dns.a-record' > client.ext
+echo 'subjectAltName=DNS:opensearch' > client.ext
 openssl x509 -req -in client.csr -CA root-ca.pem -CAkey root-ca-key.pem -CAcreateserial -sha256 -out client.pem -days 730 -extfile client.ext
 
 

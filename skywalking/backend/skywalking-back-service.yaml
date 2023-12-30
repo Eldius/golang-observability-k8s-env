@@ -12,7 +12,7 @@ spec:
       targetPort: 11800
     - name: "12800"
       port: 12800
-      targetPort: 9600
+      targetPort: 12800
   type: LoadBalancer
   selector:
     app: skywalking

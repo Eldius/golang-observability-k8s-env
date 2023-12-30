@@ -265,7 +265,7 @@ ks-skywalking: ks-skywalking-configmap
 	cd skywalking/backend; kubectl apply -f .
 
 ks-skywalking-down: ks-skywalking-configmap-down
-	cd skywalking/backend; kubectl delete -f .
+	-cd skywalking/backend; kubectl delete -f .
 
 
 up:

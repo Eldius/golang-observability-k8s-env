@@ -21,13 +21,9 @@ spec:
             - name: "SW_STORAGE"
               value: "elasticsearch"
             - name: "SW_STORAGE_ES_CLUSTER_NODES"
-              value: "node-0.example.com"
-            # - name: "SW_STORAGE_ES_CLUSTER_NODES"
-            #   value: "opensearch:9200"
+              value: "opensearch:9200"
             - name: "SW_STORAGE_ES_HTTP_PROTOCOL"
               value: "https"
-            - name: "SW_OTEL_RECEIVER"
-              value: "default"
             - name: "SW_ES_USER"
               value: "admin"
             - name: "SW_ES_PASSWORD"
@@ -36,20 +32,12 @@ spec:
               value: "/usr/share/certs/KeyStore.jks"
             - name: "SW_STORAGE_ES_SSL_JKS_PASS"
               value: "changeit"
-            # - name: "SW_STORAGE"
-            #   value: "postgresql"
-            # - name: "SW_JDBC_URL:"
-            #   value: "jdbc:postgresql://postgres:5432/skywalking"
-            # - name: "SW_DATA_SOURCE_USER"
-            #   value: "skywalking"
-            # - name: "SW_DATA_SOURCE_PASSWORD"
-            #   value: "skywalking"
-            # - name: "SW_DATA_SOURCE_CACHE_PREP_STMTS"
-            #   value: "true"
-            # - name: "SW_DATA_SOURCE_PREP_STMT_CACHE_SQL_SIZE"
-            #   value: "250"
-            # - name: "SW_OTEL_RECEIVER"
-            #   value: "default"
+            - name: "SW_OTEL_RECEIVER"
+              value: "default"
+            - name: SW_HEALTH_CHECKER
+              value: "default"
+            - name: JAVA_OPTS
+              value: "-Xms1536M -Xmx1536M"
           image: apache/skywalking-oap-server:9.7.0
           ports:
             - containerPort: 11800
@@ -57,23 +45,25 @@ spec:
             # - containerPort: 9440
           resources:
             limits:
-              memory: 1G
+              memory: 2G
             requests:
-              memory: 1G
-          # livenessProbe:
-          #   httpGet:
-          #     path: /ping
-          #     port: 8123
-          #   failureThreshold: 1
-          #   periodSeconds: 30
-          #   # Override pod-level terminationGracePeriodSeconds #
-          #   # terminationGracePeriodSeconds: 60
-          # startupProbe:
-          #   httpGet:
-          #     path: /ping
-          #     port: 8123
-          #   initialDelaySeconds: 15
-          #   periodSeconds: 30
+              memory: 2G
+          livenessProbe:
+            exec:
+              command:
+              - /skywalking/bin/swctl
+              - ch
+            initialDelaySeconds: 10
+            periodSeconds: 30
+
+          startupProbe:
+            exec:
+              command:
+              - /skywalking/bin/swctl
+              - ch
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 30
           volumeMounts:
           - name: truststore
             mountPath: /usr/share/certs
