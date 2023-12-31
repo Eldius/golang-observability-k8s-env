@@ -1,0 +1,62 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector-deployment
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.91.0
+          command:
+            - "/otelcol-contrib"
+          args: [ "--config=/etc/collector/config/otelcol-config.yml", "--config=/etc/collector/config/otelcol-config-extras.yml" ]
+          ports:
+            - containerPort: 4317  # "kind": "receiver", "name": "otlp", "data_type": "traces"
+            - containerPort: 4318  # "kind": "receiver", "name": "otlp", "data_type": "traces"
+            - containerPort: 55690 # "kind": "receiver", "name": "otlp/2", "data_type": "traces"
+            - containerPort: 55679 # "kind": "extension", "name": "zpages"
+          resources:
+            limits:
+              memory: 256M
+            requests:
+              memory: 128M
+          # livenessProbe:
+          #   exec:
+          #     command:
+          #     - /skywalking/bin/swctl
+          #     - ch
+          #   initialDelaySeconds: 10
+          #   periodSeconds: 30
+
+          # startupProbe:
+          #   exec:
+          #     command:
+          #     - /skywalking/bin/swctl
+          #     - ch
+          #   initialDelaySeconds: 60
+          #   periodSeconds: 30
+          #   failureThreshold: 30
+          volumeMounts:
+          - name: collector-config-files
+            mountPath: /etc//collector/config
+      restartPolicy: Always
+      volumes:
+        - name: collector-config-files
+          configMap:
+            name: collector-config-files
+            items:
+            - key: otelcol-config.yml
+              path: otelcol-config.yml
+            - key: otelcol-config-extras.yml
+              path: otelcol-config-extras.yml

@@ -1,0 +1,47 @@
+---
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+  otlp/2:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:55690
+
+extensions:
+  health_check:
+  pprof:
+  zpages:
+
+service:
+  extensions: [health_check, pprof, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, zipkin]
+    traces/2:
+      receivers: [otlp/2]
+      processors: [batch]
+      exporters: [debug, zipkin]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp, debug]
+    # logs:
+    #   receivers: [otlp]
+    #   processors: [batch]
+    #   exporters: [zipkin]
+exporters:
+  debug:
+  # Data sources: traces
+  zipkin:
+    endpoint: http://skywalking:9412/api/v2/spans
+  otlp:
+    endpoint: skywalking:11800
+    tls:
+      insecure: "true"
+processors:
+    batch:
+    span:

@@ -37,22 +37,26 @@ spec:
             - name: SW_HEALTH_CHECKER
               value: "default"
             - name: JAVA_OPTS
-              value: "-Xms1536M -Xmx1536M"
+              value: "-Xms2G -Xmx2G"
             - name: SW_OTEL_RECEIVER_ENABLED_HANDLERS
               value: otlp-metrics,otlp-logs,otlp-traces
             - name: SW_RECEIVER_ZIPKIN
               value: default
             - name: SW_QUERY_ZIPKIN
               value: default
+            - name: SW_ENABLE_UPDATE_UI_TEMPLATE
+              value: "true"
+            # - name: SW_OTEL_RECEIVER_ENABLED_OTEL_METRICS_RULES
+            #   value: "true"
           image: apache/skywalking-oap-server:9.7.0
           ports:
             - containerPort: 11800
             - containerPort: 12800
           resources:
             limits:
-              memory: 2G
+              memory: 2.5G
             requests:
-              memory: 2G
+              memory: 2.5G
           livenessProbe:
             exec:
               command:

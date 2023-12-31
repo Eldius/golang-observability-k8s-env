@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: skywalkingui
+  labels:
+    app: skywalkingui
+spec:
+  ports:
+    - name: "4317"
+      port: 4317
+      targetPort: 4317
+    - name: "4318"
+      port: 4318
+      targetPort: 4318
+    - name: "55690"
+      port: 55690
+      targetPort: 55690
+    - name: "55679"
+      port: 55679
+      targetPort: 55679
+  type: LoadBalancer
+  selector:
+    app: skywalkingui
+status:
+  loadBalancer: {}

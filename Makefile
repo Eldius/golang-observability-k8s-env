@@ -261,20 +261,6 @@ terraform-dashboards-log-patterns:
 # ks-uptrace-clickhouse-down:
 # 	cd uptrace/clickhouse; kubectl delete -f .
 
-ks-skywalking: ks-skywalking-configmap
-	cd skywalking/backend; kubectl apply -f .
-
-ks-skywalking-down: ks-skywalking-configmap-down
-	-cd skywalking/backend; kubectl delete -f .
-
-
-ks-skywalkingui:
-	cd skywalking/frontend; kubectl apply -f .
-
-ks-skywalkingui-down:
-	-cd skywalking/frontend; kubectl delete -f .
-
-
 up:
 	$(MAKE) ks-setup-opensearch
 
@@ -347,8 +333,33 @@ test:
 		 openjdk:17-alpine ash
 
 
+ks-skywalking: ks-skywalking-configmap
+	cd skywalking/backend; kubectl apply -f .
+
+ks-skywalking-down: ks-skywalking-configmap-down
+	-cd skywalking/backend; kubectl delete -f .
+
+ks-skywalkingui:
+	cd skywalking/frontend; kubectl apply -f .
+
+ks-skywalkingui-down:
+	-cd skywalking/frontend; kubectl delete -f .
+
+
+ks-collector: ks-collector-configmap
+	kubectl apply -f skywalking/collector
+
+ks-collector-down: ks-collector-configmap
+	kubectl delete -f skywalking/collector
+
 ks-skywalking-configmap: ks-skywalking-configmap-down
 	-kubectl create configmap skywalking-config-files --from-file=skywalking/backend/config
 
 ks-skywalking-configmap-down:
 	-kubectl delete configmap skywalking-config-files
+
+ks-collector-configmap: ks-collector-configmap-down
+	-kubectl create configmap collector-config-files --from-file=skywalking/collector/config
+
+ks-collector-configmap-down:
+	-kubectl delete configmap collector-config-files
