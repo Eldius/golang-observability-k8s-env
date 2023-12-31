@@ -24,6 +24,8 @@ spec:
               value: "http://skywalking:9412"
             - name: "SW_SERVER_PORT"
               value: "8080"
+            - name: SKYWALKINGUI_SERVICE_HOST
+              value: "0.0.0.0"
           image: apache/skywalking-ui:latest
           ports:
             - containerPort: 8080
