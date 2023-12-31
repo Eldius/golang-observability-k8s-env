@@ -20,15 +20,15 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug, zipkin]
+      exporters: [debug, zipkin, otlp/data-prepper/traces]
     traces/2:
       receivers: [otlp/2]
       processors: [batch]
-      exporters: [debug, zipkin]
+      exporters: [debug, zipkin, otlp/data-prepper/traces]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp, debug]
+      exporters: [otlp/skywalking, otlp/data-prepper/metrics, debug]
     # logs:
     #   receivers: [otlp]
     #   processors: [batch]
@@ -38,10 +38,20 @@ exporters:
   # Data sources: traces
   zipkin:
     endpoint: http://skywalking:9412/api/v2/spans
-  otlp:
+  otlp/skywalking:
     endpoint: skywalking:11800
     tls:
       insecure: "true"
+  otlp/data-prepper/traces:
+    endpoint: http://data-prepper:21890
+    tls:
+      insecure: true
+      insecure_skip_verify: true
+  otlp/data-prepper/metrics:
+    endpoint: http://data-prepper:21891
+    tls:
+      insecure: true
+      insecure_skip_verify: true
 processors:
     batch:
     span:
