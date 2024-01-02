@@ -39,6 +39,7 @@ spec:
               port: 13133
               scheme: HTTP
             initialDelaySeconds: 30
+            failureThreshold: 30
             periodSeconds: 30
           startupProbe:
             httpGet:
@@ -47,6 +48,7 @@ spec:
               scheme: HTTP
             initialDelaySeconds: 30
             periodSeconds: 30
+            failureThreshold: 30
           volumeMounts:
           - name: collector-config-files
             mountPath: /etc//collector/config
