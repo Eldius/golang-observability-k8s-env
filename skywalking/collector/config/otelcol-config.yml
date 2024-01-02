@@ -3,16 +3,22 @@ receivers:
   otlp:
     protocols:
       grpc:
-      http:
+        endpoint: 0.0.0.0:55689
   otlp/2:
     protocols:
       grpc:
         endpoint: 0.0.0.0:55690
 
 extensions:
-  health_check:
   pprof:
   zpages:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+    path: "/health/status"
+    check_collector_pipeline:
+      enabled: true
+      interval: "5m"
+      exporter_failure_threshold: 5
 
 service:
   extensions: [health_check, pprof, zpages]
@@ -20,28 +26,28 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug, zipkin, otlp/data-prepper/traces]
+      exporters: [debug, otlp/data-prepper/traces]
     traces/2:
       receivers: [otlp/2]
       processors: [batch]
-      exporters: [debug, zipkin, otlp/data-prepper/traces]
+      exporters: [debug, otlp/data-prepper/traces]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/skywalking, otlp/data-prepper/metrics, debug]
+      exporters: [otlp/data-prepper/metrics, debug]
     # logs:
     #   receivers: [otlp]
     #   processors: [batch]
     #   exporters: [zipkin]
 exporters:
   debug:
-  # Data sources: traces
-  zipkin:
-    endpoint: http://skywalking:9412/api/v2/spans
-  otlp/skywalking:
-    endpoint: skywalking:11800
-    tls:
-      insecure: "true"
+  ## Data sources: traces
+  # zipkin:
+  #   endpoint: http://skywalking:9412/api/v2/spans
+  # otlp/skywalking:
+  #   endpoint: skywalking:11800
+  #   tls:
+  #     insecure: "true"
   otlp/data-prepper/traces:
     endpoint: http://data-prepper:21890
     tls:

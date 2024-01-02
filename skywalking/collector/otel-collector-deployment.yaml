@@ -26,27 +26,27 @@ spec:
             - containerPort: 4318  # "kind": "receiver", "name": "otlp", "data_type": "traces"
             - containerPort: 55690 # "kind": "receiver", "name": "otlp/2", "data_type": "traces"
             - containerPort: 55679 # "kind": "extension", "name": "zpages"
+            - containerPort: 13133 # healthcheck
+            - containerPort: 8888  # prometheus
           resources:
             limits:
               memory: 256M
             requests:
               memory: 128M
-          # livenessProbe:
-          #   exec:
-          #     command:
-          #     - /skywalking/bin/swctl
-          #     - ch
-          #   initialDelaySeconds: 10
-          #   periodSeconds: 30
-
-          # startupProbe:
-          #   exec:
-          #     command:
-          #     - /skywalking/bin/swctl
-          #     - ch
-          #   initialDelaySeconds: 60
-          #   periodSeconds: 30
-          #   failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health/status
+              port: 13133
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          startupProbe:
+            httpGet:
+              path: /health/status
+              port: 13133
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
           volumeMounts:
           - name: collector-config-files
             mountPath: /etc//collector/config
