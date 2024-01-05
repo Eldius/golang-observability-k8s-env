@@ -23,7 +23,7 @@ spec:
             - name: "SW_STORAGE_ES_CLUSTER_NODES"
               value: "opensearch:9200"
             - name: "SW_STORAGE_ES_HTTP_PROTOCOL"
-              value: "https"
+              value: "http"
             - name: "SW_ES_USER"
               value: "admin"
             - name: "SW_ES_PASSWORD"

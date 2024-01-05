@@ -376,3 +376,9 @@ ks-collector-configmap: ks-collector-configmap-down
 
 ks-collector-configmap-down:
 	-kubectl delete configmap collector-config-files
+
+ks-wait-skywalking-startup:
+	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200))
+	@echo "opensearch => $(SKYWALKING_IP)"
+	until curl --fail -i --insecure -XGET https://$(SKYWALKING_IP)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
+	@echo "Opensearch up and running"
