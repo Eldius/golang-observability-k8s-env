@@ -88,19 +88,27 @@ ks-observability-down-opensearch:
 	@echo ""
 
 ks-wait-opensearch-startup:
-	until curl --fail -i --insecure -XGET https://$(CLUSTER_IP):9200/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
+	$(eval OPENSEARCH_IP := $(shell ./fetch_ports.sh opensearch 9200))
+	@echo "opensearch => $(OPENSEARCH_IP)"
+	until curl --fail -i --insecure -XGET https://$(OPENSEARCH_IP)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
 	@echo "Opensearch up and running"
 
 ks-wait-dashboards-startup:
-	until curl -i --fail -XGET 'http://$(CLUSTER_IP):5601/app/home' -u 'admin:admin' -s -o /dev/null; do sleep 1; done
+	$(eval OPENSEARCH_DASHBOARDS_IP := $(shell ./fetch_ports.sh opensearch-dashboards 5601))
+	@echo "opensearch => $(OPENSEARCH_DASHBOARDS_IP)"
+	until curl -i --fail -XGET 'http://$(OPENSEARCH_DASHBOARDS_IP)/app/home' -u 'admin:admin' -s -o /dev/null; do sleep 1; done
 	@echo "Dashboards up and running"
 
 ks-wait-data-prepper-startup:
-	until curl -i --fail -XGET 'http://$(CLUSTER_IP):2021/health' -s -o /dev/null; do sleep 1; done
+	$(eval DATA_PREPPER_IP := $(shell ./fetch_ports.sh data-prepper 2021))
+	@echo "opensearch => $(DATA_PREPPER_IP)"
+	until curl -i --fail -XGET 'http://$(DATA_PREPPER_IP)/health' -s -o /dev/null; do sleep 1; done
 	@echo "Data Prepper up and running"
 
 ks-wait-fluent-bit-startup:
-	until curl -i --fail -XGET 'http://$(CLUSTER_IP):24220/' -s -o /dev/null; do sleep 1; done
+	$(eval FLUENTBIT_IP := $(shell ./fetch_ports.sh fluent-bit 24220))
+	@echo "opensearch => $(FLUENTBIT_IP)"
+	until curl -i --fail -XGET 'http://$(FLUENTBIT_IP)/' -s -o /dev/null; do sleep 1; done
 	@echo "FluentBit up and running"
 
 ks-setup-opensearch: ks-observability-down-opensearch
@@ -331,6 +339,11 @@ test:
 		-v $(PWD)/skywalking/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
 		-e "USER_ID=$(USER_ID)" \
 		 openjdk:17-alpine ash
+
+
+fetch_ports:
+	$(eval POSTGRES_IP := $(shell ./fetch_ports.sh POSTGRES 5432))
+	@echo "opensearch => $(POSTGRES_IP)"
 
 
 ks-skywalking: ks-skywalking-configmap
