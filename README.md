@@ -45,3 +45,4 @@ curl --insecure -XGET 'http://192.168.100.195:9200/custom-application-logs-00001
 
 - [Generating self-signed certificates - OpenSearch](https://opensearch.org/docs/latest/security/configuration/generate-certificates/)
 - [skywalking/docker/docker-compose.yml - Github](https://github.com/apache/skywalking/blob/master/docker/docker-compose.yml)
+- [rpi4cluster.com](https://rpi4cluster.com/k3s/k3s-kube-setting/)

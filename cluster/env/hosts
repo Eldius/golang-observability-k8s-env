@@ -1,0 +1,34 @@
+---
+all:
+  hosts:
+    master:
+      ansible_host: 192.168.100.101
+      tags:
+        - master
+      var_hostname: eksmaster
+    node0:
+      ansible_host: 192.168.100.183
+      tags:
+        - worker
+      var_hostname: eksnode0
+      var_disk: sda
+      label: kubernetes.io/role=worker
+      node_type: node-type=worker
+    node1:
+      ansible_host: 192.168.100.196
+      tags:
+        - worker
+      var_hostname: eksnode1
+      var_disk: sda
+      label: kubernetes.io/role=worker
+      node_type: node-type=worker
+  children:
+    workers:
+      hosts:
+        node0:
+        node1:
+    cube:
+      hosts:
+        master:
+        node0:
+        node1:

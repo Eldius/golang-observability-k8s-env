@@ -1,0 +1,46 @@
+---
+- name: Install k3s master node
+  hosts: master
+  tasks:
+    - name: list files on /boot folder
+      become: yes
+      command: "cat /boot/cmdline.txt"
+      register: cat_output
+
+    - name: files
+      become: yes
+      ansible.builtin.debug:
+        msg: "{{ cat_output.stdout_lines }}"
+
+    - name: Validate cgroup memory is present
+      lineinfile: 
+        path: /boot/cmdline.txt
+        regexp: "^(.*) cgroup_memory=1 cgroup_enable=memory"
+        state: absent
+      check_mode: yes
+      register: cgroup_memory_presence
+
+    - name: files
+      become: yes
+      ansible.builtin.debug:
+        msg: "{{ cgroup_memory_presence }}"
+
+    - name: Setup /boot/cmdline.txt
+      become: yes
+      ansible.builtin.lineinfile:
+        path: /boot/cmdline.txt
+        backrefs: yes
+        regexp: "^(.*)$"
+        line: "\\1 cgroup_memory=1 cgroup_enable=memory"
+        state: present
+      when: not cgroup_memory_presence.changed
+
+    - name: list files on /boot folder
+      become: yes
+      command: "cat /boot/cmdline.txt"
+      register: cat_output
+
+    - name: files
+      become: yes
+      ansible.builtin.debug:
+        msg: "{{ cat_output.stdout_lines }}"

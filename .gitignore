@@ -5,3 +5,5 @@
 *.tfstate*
 
 .truststore/**
+
+cluster/.kube/*.json

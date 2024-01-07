@@ -1,0 +1,19 @@
+---
+- name: Install k3s master node
+  hosts: all
+  tasks:
+    - name: testing 00
+      become: yes
+      ansible.builtin.debug:
+        msg: "{{ tags }} => {{ hostvars[inventory_hostname] | to_json }}"
+
+    - name: to file
+      local_action: copy content="{{ hostvars[inventory_hostname] | to_json }}" dest=".kube/hostvars_{{ inventory_hostname }}.json"
+
+    - name: testing o1
+      become: yes
+      ansible.builtin.debug:
+        msg: "{{ vars | to_json }}"
+
+    - name: to file
+      local_action: copy content="{{ vars | to_json }}" dest=".kube/vars_{{ inventory_hostname }}.json"

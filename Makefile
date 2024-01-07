@@ -382,3 +382,35 @@ ks-wait-skywalking-startup:
 	@echo "opensearch => $(SKYWALKING_IP)"
 	until curl --fail -i --insecure -XGET https://$(SKYWALKING_IP)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
 	@echo "Opensearch up and running"
+
+
+cluster-setup:
+	ansible-playbook -i cluster/env/ cluster/master.yaml
+	ansible-playbook -i cluster/env/ cluster/worker_nodes.yaml
+
+nodes-setup:
+	kubectl label nodes eksnode0 kubernetes.io/role=worker
+	kubectl label nodes eksnode1 kubernetes.io/role=worker
+	kubectl label nodes eksnode0 node-type=worker
+	kubectl label nodes eksnode1 node-type=worker
+	ansible -i cluster/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
+
+cluster-uninstall:
+	ansible-playbook -i cluster/env/ cluster/master_uninstall.yaml
+
+cluster-tests:
+	ansible-playbook -i cluster/env/ cluster/testing.yaml
+
+metallb-setup:
+	helm repo add metallb https://metallb.github.io/metallb
+	helm search repo metallb
+	helm upgrade \
+		--install metallb \
+		metallb/metallb \
+		--create-namespace \
+		--namespace metallb-system \
+		--wait
+	kubectl apply -f metallb/resources.yaml
+
+storage-setup:
+	ansible-playbook -i cluster/env cluster/storage.yaml

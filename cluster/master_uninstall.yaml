@@ -1,0 +1,27 @@
+---
+- name: Uninstall k3s cluster
+  hosts: master
+  vars:
+    
+  tasks:
+    - name: Uninstall master script exists
+      become: yes
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s-uninstall.sh
+      register: uninstall_master_script
+
+    - name: Uninstall master node
+      become: yes
+      command: /usr/local/bin/k3s-uninstall.sh
+      when: uninstall_master_script.stat.exists
+
+    - name: Uninstall worker script exists
+      become: yes
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s-agent-uninstall.sh
+      register: uninstall_worker_script
+
+    - name: Uninstall worker node
+      become: yes
+      command: /usr/local/bin/k3s-agent-uninstall.sh
+      when: uninstall_worker_script.stat.exists

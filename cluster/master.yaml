@@ -1,0 +1,23 @@
+---
+- name: Install k3s master node
+  hosts: master
+  vars:
+    
+  tasks:
+    - name: Importing initial setup
+      import_tasks: initial_setup.yaml
+
+    - name: K3s is already installed
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_bin
+
+    - name: Setup K3s master node
+      shell: "curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644 --disable servicelb --token {{ cluster_token }} --node-taint CriticalAddonsOnly=true:NoExecute --bind-address {{ master_host }} --disable-cloud-controller --disable local-storage"
+      when: not k3s_bin.stat.exists
+
+    - name: Copiar arquivo do host remoto para o host local
+      become: yes
+      fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: .kube/config

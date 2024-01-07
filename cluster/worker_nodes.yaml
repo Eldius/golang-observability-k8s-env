@@ -1,0 +1,15 @@
+---
+- name: Install k3s worker nodes
+  hosts: workers
+  tasks:
+    - name: Importing initial setup
+      import_tasks: initial_setup.yaml
+
+    - name: K3s is already installed
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_bin
+
+    - name: Setup K3s worker node
+      shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_host }}:6443 K3S_TOKEN={{ cluster_token }} sh -"
+      when: not k3s_bin.stat.exists

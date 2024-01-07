@@ -1,0 +1,26 @@
+---
+- name: Install k3s master node
+  hosts: workers
+  tasks:
+    - name: Setting up storage dependencies
+      become: yes
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - nfs-common
+        - open-iscsi
+        - util-linux
+
+    # - name: Debugging
+    #   debug:
+    #     msg: "{{ vars.var_disk | to_json }}"
+
+    - name: Configuring storage
+      become: yes
+      command: "blkid -s UUID -o value /dev/{{ var_disk }}"
+      register: disk_uuid
+
+    - name: Debugging
+      debug:
+        msg: "{{ disk_uuid }}"
