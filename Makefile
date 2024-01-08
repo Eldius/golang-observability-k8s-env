@@ -384,11 +384,11 @@ ks-wait-skywalking-startup:
 	@echo "Opensearch up and running"
 
 
-cluster-setup:
+cluster-install:
 	ansible-playbook -i cluster/env/ cluster/master.yaml
 	ansible-playbook -i cluster/env/ cluster/worker_nodes.yaml
 
-nodes-setup:
+nodes-setup: cluster-install
 	kubectl label nodes eksnode0 kubernetes.io/role=worker
 	kubectl label nodes eksnode1 kubernetes.io/role=worker
 	kubectl label nodes eksnode0 node-type=worker
@@ -414,3 +414,9 @@ metallb-setup:
 
 storage-setup:
 	ansible-playbook -i cluster/env cluster/storage.yaml
+	helm repo add longhorn https://charts.longhorn.io
+	helm repo update
+	helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --set defaultSettings.defaultDataPath="/storage01"
+	kubectl apply -f longhornui/service.yaml
+
+cluster-setup: nodes-setup metallb-setup storage-setup

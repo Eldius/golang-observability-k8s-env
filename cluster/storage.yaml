@@ -12,10 +12,6 @@
         - open-iscsi
         - util-linux
 
-    # - name: Debugging
-    #   debug:
-    #     msg: "{{ vars.var_disk | to_json }}"
-
     - name: Configuring storage
       become: yes
       command: "blkid -s UUID -o value /dev/{{ var_disk }}"

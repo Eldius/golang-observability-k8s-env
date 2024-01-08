@@ -12,6 +12,7 @@ all:
         - worker
       var_hostname: eksnode0
       var_disk: sda
+      var_uuid: 9a84218c-c1c0-49b2-8140-f4df32796f7e
       label: kubernetes.io/role=worker
       node_type: node-type=worker
     node1:
@@ -20,6 +21,7 @@ all:
         - worker
       var_hostname: eksnode1
       var_disk: sda
+      var_uuid: 48f41543-aab2-4488-9fbb-736a62a7c7c6
       label: kubernetes.io/role=worker
       node_type: node-type=worker
   children:
