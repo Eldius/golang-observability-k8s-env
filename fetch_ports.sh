@@ -11,10 +11,16 @@ if [[ $# < 2 || "$1" == "-h" ]]
 fi
 SERVICENAME=$1
 INTERNALPORT=$2
+NAMESPACE=$3
 
-EXTPORT=`${KUBECTL} get svc $SERVICENAME -o=jsonpath="{.spec.ports[?(@.port==${INTERNALPORT})].nodePort}"`
+if [[ -z $NAMESPACE ]]
+then
+    NAMESPACE="default"
+fi
 
-EXTIP=`${KUBECTL} get node -o=jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}'`
+EXTPORT=`${KUBECTL} get svc $SERVICENAME -n $NAMESPACE -o=jsonpath="{.spec.ports[?(@.port==${INTERNALPORT})].nodePort}"`
+
+EXTIP=`${KUBECTL} get node -n $NAMESPACE -o=jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}'`
 
 
 if [[ -z $EXTPORT ]]

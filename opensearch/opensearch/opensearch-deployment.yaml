@@ -71,6 +71,7 @@ spec:
                   value: Basic YWRtaW46YWRtaW4=
             initialDelaySeconds: 30
             periodSeconds: 30
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /_cluster/health
@@ -81,6 +82,7 @@ spec:
                   value: Basic YWRtaW46YWRtaW4=
             initialDelaySeconds: 30
             periodSeconds: 30
+            failureThreshold: 30
 
       volumes:
         - name: opensearch-pv-storage

@@ -7,7 +7,7 @@ terraform {
     # }
     opensearch = {
       source = "opensearch-project/opensearch"
-      #version = "2.0.0"
+      version = "2.2.0"
     }
   }
 
@@ -15,7 +15,7 @@ terraform {
 
 provider "opensearch" {
   # Configuration options
-  url      = "https://192.168.100.196:9200"
+  # url      = "https://192.168.100.196:9200"
   username = "admin"
   password = "admin"
   insecure = true

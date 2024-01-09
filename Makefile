@@ -94,25 +94,25 @@ ks-observability-down-opensearch:
 	@echo ""
 
 ks-wait-opensearch-startup:
-	$(eval OPENSEARCH_IP := $(shell ./fetch_ports.sh opensearch 9200))
+	$(eval OPENSEARCH_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
 	@echo "opensearch => $(OPENSEARCH_IP)"
 	until curl --fail -i --insecure -XGET https://$(OPENSEARCH_IP)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
 	@echo "Opensearch up and running"
 
 ks-wait-dashboards-startup:
-	$(eval OPENSEARCH_DASHBOARDS_IP := $(shell ./fetch_ports.sh opensearch-dashboards 5601))
+	$(eval OPENSEARCH_DASHBOARDS_IP := $(shell ./fetch_ports.sh opensearch-dashboards 5601 observability))
 	@echo "opensearch => $(OPENSEARCH_DASHBOARDS_IP)"
 	until curl -i --fail -XGET 'http://$(OPENSEARCH_DASHBOARDS_IP)/app/home' -u 'admin:admin' -s -o /dev/null; do sleep 1; done
 	@echo "Dashboards up and running"
 
 ks-wait-data-prepper-startup:
-	$(eval DATA_PREPPER_IP := $(shell ./fetch_ports.sh data-prepper 2021))
+	$(eval DATA_PREPPER_IP := $(shell ./fetch_ports.sh data-prepper 2021 observability))
 	@echo "opensearch => $(DATA_PREPPER_IP)"
 	until curl -i --fail -XGET 'http://$(DATA_PREPPER_IP)/health' -s -o /dev/null; do sleep 1; done
 	@echo "Data Prepper up and running"
 
 ks-wait-fluent-bit-startup:
-	$(eval FLUENTBIT_IP := $(shell ./fetch_ports.sh fluent-bit 24220))
+	$(eval FLUENTBIT_IP := $(shell ./fetch_ports.sh fluent-bit 24220 observability))
 	@echo "opensearch => $(FLUENTBIT_IP)"
 	until curl -i --fail -XGET 'http://$(FLUENTBIT_IP)/' -s -o /dev/null; do sleep 1; done
 	@echo "FluentBit up and running"
@@ -256,12 +256,16 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 
 
 terraform-opensearch-log-indexes:
-	cd terraform/log-indexes; terraform init
-	cd terraform/log-indexes; terraform apply -auto-approve
+	$(eval OPENSEARCH_HOST := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	@echo "Opensearch Host: $(OPENSEARCH_HOST)"
+	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform init
+	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform apply -auto-approve
 
 terraform-dashboards-log-patterns:
-	cd terraform/index-patterns; terraform init
-	cd terraform/index-patterns; terraform apply -auto-approve
+	$(eval OPENSEARCH_HOST := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	@echo "Opensearch Host: $(OPENSEARCH_HOST)"
+	cd terraform/index-patterns; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform init
+	cd terraform/index-patterns; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform apply -auto-approve
 
 # ks-uptrace-clickhouse-configmap: ks-uptrace-clickhouse-configmap-down
 # 	kubectl create configmap -n observability uptrace-clickhouse-config-files --from-file=uptrace/clickhouse/config
@@ -384,7 +388,7 @@ ks-collector-configmap-down:
 	-kubectl delete configmap collector-config-files
 
 ks-wait-skywalking-startup:
-	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200))
+	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
 	@echo "opensearch => $(SKYWALKING_IP)"
 	until curl --fail -i --insecure -XGET https://$(SKYWALKING_IP)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
 	@echo "Opensearch up and running"
