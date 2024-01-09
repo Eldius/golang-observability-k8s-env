@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fluent-bit-deployment
+  namespace: observability
   labels:
     app: fluent-bit
 spec:
@@ -12,6 +13,7 @@ spec:
       app: fluent-bit
   template:
     metadata:
+      namespace: observability
       labels:
         app: fluent-bit
     spec:

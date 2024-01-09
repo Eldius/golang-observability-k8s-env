@@ -5,6 +5,7 @@ metadata:
   name: opensearch
   labels:
     app: opensearch
+    namespace: observability
 spec:
   ports:
     - name: "9200"

@@ -1,27 +1,13 @@
-# ---
-# apiVersion: v1
-# kind: PersistentVolume
-# metadata:
-#   name: persistent-volume
-#   labels:
-#     type: local
-# spec:
-#   storageClassName: local-path
-#   capacity:
-#     storage: 8Gi
-#   accessModes:
-#     - ReadWriteOnce
-#   hostPath:
-#     path: "/mnt/data"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: opensearch-pv-claim
+  namespace: observability
 spec:
-  storageClassName: local-path
+  storageClassName: longhorn
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 8Gi
+      storage: 4Gi

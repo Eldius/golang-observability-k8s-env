@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: opensearch-deployment
+  namespace: observability
   labels:
     app: opensearch
 spec:
@@ -12,6 +13,7 @@ spec:
       app: opensearch
   template:
     metadata:
+      namespace: observability
       labels:
         app: opensearch
     spec:

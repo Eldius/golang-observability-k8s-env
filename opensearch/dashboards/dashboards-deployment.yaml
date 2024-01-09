@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: opensearch-dashboards-deployment
+  namespace: observability
   labels:
     app: opensearch-dashboards
 spec:
@@ -12,6 +13,7 @@ spec:
       app: opensearch-dashboards
   template:
     metadata:
+      namespace: observability
       labels:
         app: opensearch-dashboards
     spec:

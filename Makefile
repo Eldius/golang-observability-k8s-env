@@ -1,11 +1,17 @@
 
 CLUSTER_IP := 192.168.100.196
 
-ks-opensearch:
-	cd opensearch/opensearch; kubectl apply -f .
+ks-observability-namespace-down:
+	-kubectl delete namespace observability
 
-ks-opensearch-configmap:
-	-kubectl create configmap opensearch-certs --from-file=opensearch/opensearch/certs
+ks-observability-namespace:
+	-kubectl create namespace observability
+
+ks-opensearch: ks-opensearch-configmap
+	kubectl apply -f opensearch/opensearch
+
+ks-opensearch-configmap: ks-opensearch-configmap-down
+	-kubectl create configmap -n observability opensearch-certs --from-file=opensearch/opensearch/certs
 
 ks-opensearch-configmap-down:
 	-kubectl delete configmap opensearch-certs
@@ -17,19 +23,19 @@ opensearch-up:
 	./scripts/is_opensearch_up.sh
 
 ks-dashboards-down:
-	-cd opensearch/dashboards; kubectl delete -f .
+	-kubectl delete -f opensearch/dashboards
 
 ks-data-prepper:
-	cd opensearch/data-prepper; kubectl apply -f .
+	kubectl apply -f opensearch/data-prepper
 
 ks-data-prepper-down: ks-data-prepper-configmap-down
-	-cd opensearch/data-prepper; kubectl delete -f .
+	-kubectl delete -f opensearch/data-prepper
 
 ks-fluent-bit:
-	cd opensearch/fluent-bit; kubectl apply -f .
+	kubectl apply -f opensearch/fluent-bit
 
 ks-postgres-configmap: ks-postgres-configmap-down
-	-kubectl create configmap postgres-init-scripts --from-file=postgres/scripts
+	-kubectl create configmap -n observability postgres-init-scripts --from-file=postgres/scripts
 
 ks-postgres-configmap-down:
 	-kubectl delete configmap postgres-init-scripts
@@ -47,13 +53,13 @@ ks-opensearch-down:
 	-cd opensearch/opensearch; kubectl delete -f .
 
 ks-data-prepper-configmap:
-	-kubectl create configmap data-prepper-config-files --from-file=opensearch/data-prepper/configs
+	-kubectl create configmap -n observability data-prepper-config-files --from-file=opensearch/data-prepper/configs
 
 ks-data-prepper-configmap-down:
 	-kubectl delete configmap data-prepper-config-files
 
 ks-fluent-bit-configmap:
-	-kubectl create configmap fluent-bit-config-files --from-file=opensearch/fluent-bit/configs
+	-kubectl create configmap -n observability fluent-bit-config-files --from-file=opensearch/fluent-bit/configs
 
 ks-fluent-bit-configmap-down:
 	-kubectl delete configmap fluent-bit-config-files
@@ -111,7 +117,7 @@ ks-wait-fluent-bit-startup:
 	until curl -i --fail -XGET 'http://$(FLUENTBIT_IP)/' -s -o /dev/null; do sleep 1; done
 	@echo "FluentBit up and running"
 
-ks-setup-opensearch: ks-observability-down-opensearch
+ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 
 	@echo "-----"
 	@echo "Creating Opensearch configmap"
@@ -258,7 +264,7 @@ terraform-dashboards-log-patterns:
 	cd terraform/index-patterns; terraform apply -auto-approve
 
 # ks-uptrace-clickhouse-configmap: ks-uptrace-clickhouse-configmap-down
-# 	kubectl create configmap uptrace-clickhouse-config-files --from-file=uptrace/clickhouse/config
+# 	kubectl create configmap -n observability uptrace-clickhouse-config-files --from-file=uptrace/clickhouse/config
 
 # ks-uptrace-clickhouse-configmap-down:
 # 	-kubectl delete configmap uptrace-clickhouse-config-files
@@ -366,13 +372,13 @@ ks-collector-down: ks-collector-configmap
 	kubectl delete -f skywalking/collector
 
 ks-skywalking-configmap: ks-skywalking-configmap-down
-	-kubectl create configmap skywalking-config-files --from-file=skywalking/backend/config
+	-kubectl create configmap -n observability skywalking-config-files --from-file=skywalking/backend/config
 
 ks-skywalking-configmap-down:
 	-kubectl delete configmap skywalking-config-files
 
 ks-collector-configmap: ks-collector-configmap-down
-	-kubectl create configmap collector-config-files --from-file=skywalking/collector/config
+	-kubectl create configmap -n observability collector-config-files --from-file=skywalking/collector/config
 
 ks-collector-configmap-down:
 	-kubectl delete configmap collector-config-files
