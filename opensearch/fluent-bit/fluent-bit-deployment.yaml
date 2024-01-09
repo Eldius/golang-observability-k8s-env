@@ -22,6 +22,7 @@ spec:
           image: fluent/fluent-bit:latest
           ports:
             - containerPort: 24224
+            - containerPort: 24220
           resources:
             limits:
               memory: 256M

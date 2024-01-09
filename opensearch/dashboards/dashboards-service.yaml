@@ -12,5 +12,6 @@ spec:
       port: 5601
       targetPort: 5601
   type: LoadBalancer
+  loadBalancerIP: 192.168.100.204
   selector:
     app: opensearch-dashboards

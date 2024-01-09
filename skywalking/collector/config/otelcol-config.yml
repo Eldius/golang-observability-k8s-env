@@ -1,10 +1,10 @@
 ---
 receivers:
-  otlp:
+  otlp/traces:
     protocols:
       grpc:
         endpoint: 0.0.0.0:55689
-  otlp/2:
+  otlp/metrics:
     protocols:
       grpc:
         endpoint: 0.0.0.0:55690
@@ -24,21 +24,20 @@ service:
   extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
-      receivers: [otlp]
+      receivers: [otlp/traces]
       processors: [batch]
-      exporters: [debug, otlp/data-prepper/traces]
-    traces/2:
-      receivers: [otlp/2]
-      processors: [batch]
-      exporters: [debug, otlp/data-prepper/traces]
+      exporters: [otlp/data-prepper/traces, debug]
     metrics:
-      receivers: [otlp]
+      receivers: [otlp/metrics]
       processors: [batch]
       exporters: [otlp/data-prepper/metrics, debug]
     # logs:
     #   receivers: [otlp]
     #   processors: [batch]
     #   exporters: [zipkin]
+  telemetry:
+    logs:
+      level: "debug"
 exporters:
   debug:
   ## Data sources: traces

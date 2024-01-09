@@ -31,7 +31,7 @@ ks-data-prepper:
 ks-data-prepper-down: ks-data-prepper-configmap-down
 	-kubectl delete -f opensearch/data-prepper
 
-ks-fluent-bit:
+ks-fluent-bit: ks-fluent-bit-configmap
 	kubectl apply -f opensearch/fluent-bit
 
 ks-postgres-configmap: ks-postgres-configmap-down
@@ -56,13 +56,13 @@ ks-data-prepper-configmap:
 	-kubectl create configmap -n observability data-prepper-config-files --from-file=opensearch/data-prepper/configs
 
 ks-data-prepper-configmap-down:
-	-kubectl delete configmap data-prepper-config-files
+	-kubectl delete configmap -n observability data-prepper-config-files
 
 ks-fluent-bit-configmap:
 	-kubectl create configmap -n observability fluent-bit-config-files --from-file=opensearch/fluent-bit/configs
 
 ks-fluent-bit-configmap-down:
-	-kubectl delete configmap fluent-bit-config-files
+	-kubectl delete configmap -n observability fluent-bit-config-files
 
 ks-jaeger-collector:
 	cd jaeger/collector; kubectl apply -f .
@@ -379,13 +379,13 @@ ks-skywalking-configmap: ks-skywalking-configmap-down
 	-kubectl create configmap -n observability skywalking-config-files --from-file=skywalking/backend/config
 
 ks-skywalking-configmap-down:
-	-kubectl delete configmap skywalking-config-files
+	-kubectl delete configmap -n observability skywalking-config-files
 
 ks-collector-configmap: ks-collector-configmap-down
 	-kubectl create configmap -n observability collector-config-files --from-file=skywalking/collector/config
 
 ks-collector-configmap-down:
-	-kubectl delete configmap collector-config-files
+	-kubectl delete configmap -n observability collector-config-files
 
 ks-wait-skywalking-startup:
 	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
@@ -395,21 +395,21 @@ ks-wait-skywalking-startup:
 
 
 cluster-install:
-	ansible-playbook -i cluster/env/ cluster/master.yaml
-	ansible-playbook -i cluster/env/ cluster/worker_nodes.yaml
+	ansible-playbook -i cluster/ansible/env/ ansible/cluster/master.yaml
+	ansible-playbook -i cluster/ansible/env/ ansible/cluster/worker_nodes.yaml
 
 nodes-setup: cluster-install
 	kubectl label nodes eksnode0 kubernetes.io/role=worker
 	kubectl label nodes eksnode1 kubernetes.io/role=worker
 	kubectl label nodes eksnode0 node-type=worker
 	kubectl label nodes eksnode1 node-type=worker
-	ansible -i cluster/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
+	ansible -i cluster/ansible/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
 
 cluster-uninstall:
-	ansible-playbook -i cluster/env/ cluster/master_uninstall.yaml
+	ansible-playbook -i cluster/ansible/env/ ansible/cluster/master_uninstall.yaml
 
 cluster-tests:
-	ansible-playbook -i cluster/env/ cluster/testing.yaml
+	ansible-playbook -i cluster/ansible/env/ ansible/cluster/testing.yaml
 
 metallb-setup:
 	helm repo add metallb https://metallb.github.io/metallb
@@ -420,13 +420,13 @@ metallb-setup:
 		--create-namespace \
 		--namespace metallb-system \
 		--wait
-	kubectl apply -f metallb/resources.yaml
+	kubectl apply -f cluster/metallb/resources.yaml
 
 storage-setup:
-	ansible-playbook -i cluster/env cluster/storage.yaml
+	ansible-playbook -i cluster/ansible/env cluster/ansible/storage.yaml
 	helm repo add longhorn https://charts.longhorn.io
 	helm repo update
 	helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --set defaultSettings.defaultDataPath="/storage01"
-	kubectl apply -f longhornui/service.yaml
+	kubectl apply -f cluster/longhornui/service.yaml
 
 cluster-setup: nodes-setup metallb-setup storage-setup
