@@ -390,16 +390,16 @@ fetch_ports:
 
 
 ks-skywalking: ks-skywalking-configmap
-	cd skywalking/backend; kubectl apply -f .
+	kubectl apply -f skywalking/backend
 
 ks-skywalking-down: ks-skywalking-configmap-down
-	-cd skywalking/backend; kubectl delete -f .
+	-kubectl delete -f skywalking/backend
 
 ks-skywalkingui:
-	cd skywalking/frontend; kubectl apply -f .
+	kubectl apply -f skywalking/frontend
 
 ks-skywalkingui-down:
-	-cd skywalking/frontend; kubectl delete -f .
+	-kubectl delete -f skywalking/frontend
 
 
 ks-collector: ks-collector-configmap
@@ -428,8 +428,8 @@ ks-wait-collector-startup:
 
 ks-wait-skywalking-startup:
 	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
-	@echo "opensearch => $(SKYWALKING_IP)"
-	until curl --fail -i --insecure -XGET https://$(SKYWALKING_IP)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
+	@echo "skywalking => $(SKYWALKING_IP)"
+	until grpcurl -plaintext -proto skywalking/backend/config/healthcheck.proto -connect-timeout 10 -max-time 20 $(SKYWALKING_IP) grpc.health.v1.Health.Check; do sleep 1; done
 	@echo "Skywalking up and running"
 
 
