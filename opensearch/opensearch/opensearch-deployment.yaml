@@ -26,7 +26,7 @@ spec:
           image: opensearchproject/opensearch:2.5.0
           env:
             - name: OPENSEARCH_JAVA_OPTS
-              value: -Xms756m -Xmx756m
+              value: -Xms1g -Xmx1g
             - name: bootstrap.memory_lock
               value: "true"
             - name: discovery.type
@@ -53,9 +53,9 @@ spec:
             - containerPort: 9600
           resources:
             limits:
-              memory: 2G
+              memory: 2.5G
             requests:
-              memory: 2G
+              memory: 2.5G
           volumeMounts:
             - name: opensearch-pv-storage
               mountPath: "/usr/share/opensearch/data"

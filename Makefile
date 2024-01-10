@@ -1,6 +1,9 @@
 
 CLUSTER_IP := 192.168.100.196
 
+CONNECTION_TIMEOUT := 30
+READ_TIMEOUT := 30
+
 ks-observability-namespace-down:
 	-kubectl delete namespace observability
 
@@ -83,13 +86,16 @@ ks-observability-down-opensearch:
 	@echo ""
 	$(MAKE) ks-fluent-bit-down
 	$(MAKE) ks-fluent-bit-configmap-down
+	$(MAKE) ks-collector-down
+	$(MAKE) ks-collector-configmap-down
+	$(MAKE) ks-skywalking-down
+	$(MAKE) ks-skywalking-configmap-down
+	$(MAKE) ks-collector-down
 	$(MAKE) ks-data-prepper-down
 	$(MAKE) ks-data-prepper-configmap-down
 	$(MAKE) ks-dashboards-down
 	$(MAKE) ks-opensearch-down
 	$(MAKE) ks-opensearch-configmap-down
-	$(MAKE) ks-collector-down
-	$(MAKE) ks-collector-configmap-down
 	@echo "*****"
 	@echo ""
 	@echo ""
@@ -287,6 +293,37 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo ""
 	@echo ""
 
+	@echo "-----"
+	@echo "Creating Skywalking OAP configmap"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-skywalking-configmap
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Creating Skywalking OAP"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-skywalking
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Waiting Skywalking OAP startup"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-wait-skywalking-startup
+	@echo ""
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
 
 terraform-opensearch-log-indexes:
 	$(eval OPENSEARCH_HOST := $(shell ./fetch_ports.sh opensearch 9200 observability))
@@ -311,13 +348,6 @@ terraform-dashboards-log-patterns:
 
 # ks-uptrace-clickhouse-down:
 # 	cd uptrace/clickhouse; kubectl delete -f .
-
-up:
-	$(MAKE) ks-setup-opensearch
-
-down:
-	$(MAKE) ks-observability-down-opensearch
-
 
 # test:
 # 	# docker run -it --rm --name jdk -v temp:/data openjdk:17 keytool -h
@@ -406,7 +436,7 @@ ks-collector: ks-collector-configmap
 	kubectl apply -f skywalking/collector
 
 ks-collector-down: ks-collector-configmap
-	kubectl delete -f skywalking/collector
+	-kubectl delete -f skywalking/collector
 
 ks-skywalking-configmap: ks-skywalking-configmap-down
 	-kubectl create configmap -n observability skywalking-config-files --from-file=skywalking/backend/config
@@ -428,10 +458,11 @@ ks-wait-collector-startup:
 
 ks-wait-skywalking-startup:
 	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
-	@echo "skywalking => $(SKYWALKING_IP)"
-	until grpcurl -plaintext -proto skywalking/backend/config/healthcheck.proto -connect-timeout 10 -max-time 20 $(SKYWALKING_IP) grpc.health.v1.Health.Check; do sleep 1; done
+	@echo "[before] skywalking => $(SKYWALKING_IP)"
+	until grpcurl -plaintext -proto skywalking/backend/config/healthcheck.proto -connect-timeout $(CONNECTION_TIMEOUT) -max-time $(READ_TIMEOUT) $(shell ./fetch_ports.sh opensearch 9200 observability) grpc.health.v1.Health.Check; do echo "still waiting"; sleep 1; done
+	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	@echo "[after]  skywalking => $(SKYWALKING_IP)"
 	@echo "Skywalking up and running"
-
 
 cluster-install:
 	ansible-playbook -i cluster/ansible/env/ ansible/cluster/master.yaml
@@ -469,3 +500,9 @@ storage-setup:
 	kubectl apply -f cluster/longhornui/service.yaml
 
 cluster-setup: nodes-setup metallb-setup storage-setup
+
+up:
+	$(MAKE) ks-setup-opensearch
+
+down:
+	$(MAKE) ks-observability-down-opensearch
