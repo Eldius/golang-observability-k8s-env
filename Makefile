@@ -88,6 +88,8 @@ ks-observability-down-opensearch:
 	$(MAKE) ks-dashboards-down
 	$(MAKE) ks-opensearch-down
 	$(MAKE) ks-opensearch-configmap-down
+	$(MAKE) ks-collector-down
+	$(MAKE) ks-collector-configmap-down
 	@echo "*****"
 	@echo ""
 	@echo ""
@@ -254,6 +256,37 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo ""
 	@echo ""
 
+	@echo "-----"
+	@echo "Creating OTEL Collector configmap"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-collector-configmap
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Creating OTEL Collector"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-collector
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Waiting OTEL Collector startup"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-wait-collector-startup
+	@echo ""
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
 
 terraform-opensearch-log-indexes:
 	$(eval OPENSEARCH_HOST := $(shell ./fetch_ports.sh opensearch 9200 observability))
@@ -387,11 +420,17 @@ ks-collector-configmap: ks-collector-configmap-down
 ks-collector-configmap-down:
 	-kubectl delete configmap -n observability collector-config-files
 
+ks-wait-collector-startup:
+	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh otel-collector 13133 observability))
+	@echo "opensearch => $(SKYWALKING_IP)"
+	until curl --fail -i --insecure -XGET http://$(SKYWALKING_IP)/health/status; do sleep 1; done
+	@echo "OTEL Collector up and running"
+
 ks-wait-skywalking-startup:
 	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
 	@echo "opensearch => $(SKYWALKING_IP)"
 	until curl --fail -i --insecure -XGET https://$(SKYWALKING_IP)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
-	@echo "Opensearch up and running"
+	@echo "Skywalking up and running"
 
 
 cluster-install:
