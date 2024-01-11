@@ -103,26 +103,42 @@ ks-observability-down-opensearch:
 
 ks-wait-opensearch-startup:
 	$(eval OPENSEARCH_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
-	@echo "opensearch => $(OPENSEARCH_IP)"
-	until curl --fail -i --insecure -XGET https://$(OPENSEARCH_IP)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
+	@echo "[before] opensearch => $(OPENSEARCH_IP)"
+
+	until curl --fail -i --insecure -XGET https://$(shell ./fetch_ports.sh opensearch 9200 observability)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
+
+	$(eval OPENSEARCH_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	@echo "[after]  opensearch => $(OPENSEARCH_IP)"
 	@echo "Opensearch up and running"
 
 ks-wait-dashboards-startup:
 	$(eval OPENSEARCH_DASHBOARDS_IP := $(shell ./fetch_ports.sh opensearch-dashboards 5601 observability))
-	@echo "opensearch => $(OPENSEARCH_DASHBOARDS_IP)"
-	until curl -i --fail -XGET 'http://$(OPENSEARCH_DASHBOARDS_IP)/app/home' -u 'admin:admin' -s -o /dev/null; do sleep 1; done
+	@echo "[before] opensearch dashboards => $(OPENSEARCH_DASHBOARDS_IP)"
+
+	until curl -i --fail -XGET 'http://$(shell ./fetch_ports.sh opensearch-dashboards 5601 observability)/app/home' -u 'admin:admin' -s -o /dev/null; do sleep 1; done
+
+	$(eval OPENSEARCH_DASHBOARDS_IP := $(shell ./fetch_ports.sh opensearch-dashboards 5601 observability))
+	@echo "[after]  opensearch dashboards => $(OPENSEARCH_DASHBOARDS_IP)"
 	@echo "Dashboards up and running"
 
 ks-wait-data-prepper-startup:
 	$(eval DATA_PREPPER_IP := $(shell ./fetch_ports.sh data-prepper 2021 observability))
-	@echo "opensearch => $(DATA_PREPPER_IP)"
-	until curl -i --fail -XGET 'http://$(DATA_PREPPER_IP)/health' -s -o /dev/null; do sleep 1; done
+	@echo "[before] data prepper => $(DATA_PREPPER_IP)"
+
+	until curl -i --fail -XGET 'http://$(shell ./fetch_ports.sh data-prepper 2021 observability)/health' -s -o /dev/null; do sleep 1; done
+
+	$(eval DATA_PREPPER_IP := $(shell ./fetch_ports.sh data-prepper 2021 observability))
+	@echo "[after]  data prepper => $(DATA_PREPPER_IP)"
 	@echo "Data Prepper up and running"
 
 ks-wait-fluent-bit-startup:
 	$(eval FLUENTBIT_IP := $(shell ./fetch_ports.sh fluent-bit 24220 observability))
-	@echo "opensearch => $(FLUENTBIT_IP)"
-	until curl -i --fail -XGET 'http://$(FLUENTBIT_IP)/' -s -o /dev/null; do sleep 1; done
+	@echo "[before] fluent bit => $(FLUENTBIT_IP)"
+
+	until curl -i --fail -XGET 'http://$(shell ./fetch_ports.sh fluent-bit 24220 observability)/' -s -o /dev/null; do sleep 1; done
+
+	$(eval FLUENTBIT_IP := $(shell ./fetch_ports.sh fluent-bit 24220 observability))
+	@echo "[after]  fluent bit => $(FLUENTBIT_IP)"
 	@echo "FluentBit up and running"
 
 ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
@@ -262,36 +278,6 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo ""
 	@echo ""
 
-	@echo "-----"
-	@echo "Creating OTEL Collector configmap"
-	@echo "-----"
-	@echo ""
-	$(MAKE) ks-collector-configmap
-	@echo "*****"
-	@echo ""
-	@echo ""
-	@echo ""
-
-	@echo "-----"
-	@echo "Creating OTEL Collector"
-	@echo "-----"
-	@echo ""
-	$(MAKE) ks-collector
-	@echo "*****"
-	@echo ""
-	@echo ""
-	@echo ""
-
-	@echo "-----"
-	@echo "Waiting OTEL Collector startup"
-	@echo "-----"
-	@echo ""
-	$(MAKE) ks-wait-collector-startup
-	@echo ""
-	@echo "*****"
-	@echo ""
-	@echo ""
-	@echo ""
 
 	@echo "-----"
 	@echo "Creating Skywalking OAP configmap"
@@ -324,6 +310,36 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo ""
 	@echo ""
 
+	@echo "-----"
+	@echo "Creating OTEL Collector configmap"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-collector-configmap
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Creating OTEL Collector"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-collector
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Waiting OTEL Collector startup"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-wait-collector-startup
+	@echo ""
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
 
 terraform-opensearch-log-indexes:
 	$(eval OPENSEARCH_HOST := $(shell ./fetch_ports.sh opensearch 9200 observability))
@@ -431,7 +447,6 @@ ks-skywalkingui:
 ks-skywalkingui-down:
 	-kubectl delete -f skywalking/frontend
 
-
 ks-collector: ks-collector-configmap
 	kubectl apply -f skywalking/collector
 
@@ -452,15 +467,17 @@ ks-collector-configmap-down:
 
 ks-wait-collector-startup:
 	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh otel-collector 13133 observability))
-	@echo "opensearch => $(SKYWALKING_IP)"
-	until curl --fail -i --insecure -XGET http://$(SKYWALKING_IP)/health/status; do sleep 1; done
+	@echo "[before] opensearch => $(SKYWALKING_IP)"
+	until curl --fail -i --insecure -XGET http://$(shell ./fetch_ports.sh otel-collector 13133 observability)/health/status; do sleep 1; done
+	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh otel-collector 13133 observability))
+	@echo "[after]  opensearch => $(SKYWALKING_IP)"
 	@echo "OTEL Collector up and running"
 
 ks-wait-skywalking-startup:
-	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh skywalking 11800 observability))
 	@echo "[before] skywalking => $(SKYWALKING_IP)"
-	until grpcurl -plaintext -proto skywalking/backend/config/healthcheck.proto -connect-timeout $(CONNECTION_TIMEOUT) -max-time $(READ_TIMEOUT) $(shell ./fetch_ports.sh opensearch 9200 observability) grpc.health.v1.Health.Check; do echo "still waiting"; sleep 1; done
-	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	until grpcurl -plaintext -proto skywalking/backend/config/healthcheck.proto -connect-timeout $(CONNECTION_TIMEOUT) -max-time $(READ_TIMEOUT) $(shell ./fetch_ports.sh skywalking 11800 observability) grpc.health.v1.Health.Check; do echo "still waiting"; sleep 1; done
+	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh skywalking 11800 observability))
 	@echo "[after]  skywalking => $(SKYWALKING_IP)"
 	@echo "Skywalking up and running"
 
