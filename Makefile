@@ -466,11 +466,11 @@ ks-collector-configmap-down:
 	-kubectl delete configmap -n observability collector-config-files
 
 ks-wait-collector-startup:
-	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh otel-collector 13133 observability))
-	@echo "[before] opensearch => $(SKYWALKING_IP)"
+	$(COLLECTOR HOST $(shell ./fetch_ports.sh otel-collector 13133 observability))
+	@echo "[before] opensearch => $(COLLECTOR_HOST)"
 	until curl --fail -i --insecure -XGET http://$(shell ./fetch_ports.sh otel-collector 13133 observability)/health/status; do sleep 1; done
-	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh otel-collector 13133 observability))
-	@echo "[after]  opensearch => $(SKYWALKING_IP)"
+	$(eval COLLECTOR_HOST := $(shell ./fetch_ports.sh otel-collector 13133 observability))
+	@echo "[after]  opensearch => $(COLLECTOR_HOST)"
 	@echo "OTEL Collector up and running"
 
 ks-wait-skywalking-startup:
@@ -479,6 +479,14 @@ ks-wait-skywalking-startup:
 	until grpcurl -plaintext -proto skywalking/backend/config/healthcheck.proto -connect-timeout $(CONNECTION_TIMEOUT) -max-time $(READ_TIMEOUT) $(shell ./fetch_ports.sh skywalking 11800 observability) grpc.health.v1.Health.Check; do echo "still waiting"; sleep 1; done
 	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh skywalking 11800 observability))
 	@echo "[after]  skywalking => $(SKYWALKING_IP)"
+	@echo "Skywalking up and running"
+
+ks-wait-skywalkingui-startup:
+	$(eval SKYWALKINGUI_IP := $(shell ./fetch_ports.sh skywalkingui 8080 observability))
+	@echo "[before] skywalking => $(SKYWALKINGUI_IP)"
+	until  curl --fail -i --insecure -XGET http://$(shell ./fetch_ports.sh skywalkingui 8080 observability); do echo "still waiting"; sleep 1; done
+	$(eval SKYWALKINGUI_IP := $(shell ./fetch_ports.sh skywalkingui 8080 observability))
+	@echo "[after]  skywalking => $(SKYWALKINGUI_IP)"
 	@echo "Skywalking up and running"
 
 cluster-install:
