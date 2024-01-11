@@ -38,7 +38,7 @@ spec:
             - name: SW_HEALTH_CHECKER
               value: "default"
             - name: JAVA_OPTS
-              value: "-Xms2.3G -Xmx2.3G"
+              value: "-Xms2300M -Xmx2300M"
             - name: SW_OTEL_RECEIVER_ENABLED_HANDLERS
               value: otlp-metrics,otlp-logs,otlp-traces
             - name: SW_RECEIVER_ZIPKIN
@@ -53,6 +53,7 @@ spec:
           ports:
             - containerPort: 11800
             - containerPort: 12800
+            - containerPort: 9412
           resources:
             limits:
               memory: 3G

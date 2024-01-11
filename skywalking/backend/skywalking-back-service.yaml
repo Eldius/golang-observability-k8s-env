@@ -14,6 +14,9 @@ spec:
     - name: "12800"
       port: 12800
       targetPort: 12800
+    - name: "9412"
+      port: 9412
+      targetPort: 9412
   type: LoadBalancer
   loadBalancerIP: 192.168.100.208
   selector:
