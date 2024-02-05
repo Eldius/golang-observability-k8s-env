@@ -21,11 +21,17 @@ provider "opensearch" {
   insecure = true
 }
 
+resource "opensearch_ism_policy" "logs_cleanup_policy" {
+  policy_id = "default_delete_after_1d"
+  body      = file("${path.module}/mappings/index_rollout_policy.json")
+}
+
 # Create a simple index
 resource "opensearch_index" "logs" {
   name               = "application-logs-00001"
   number_of_shards   = 1
   number_of_replicas = 0
+
   aliases            = jsonencode({
     "application-logs" = {
       "is_write_index" = true
@@ -33,4 +39,9 @@ resource "opensearch_index" "logs" {
   })
   mappings           = file("${path.module}/mappings/log-index.json")
   # mappings           = "{}"
+}
+
+resource "opensearch_ism_policy_mapping" "logs_cleanup" {
+  policy_id = "default_delete_after_1d"
+  indexes   = "application-logs-00001"
 }

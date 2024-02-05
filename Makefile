@@ -490,14 +490,14 @@ ks-wait-skywalkingui-startup:
 	@echo "Skywalking up and running"
 
 cluster-install:
-	ansible-playbook -i cluster/ansible/env/ ansible/cluster/master.yaml
-	ansible-playbook -i cluster/ansible/env/ ansible/cluster/worker_nodes.yaml
+	ansible-playbook -i cluster/ansible/env/ cluster/ansible/master.yaml
+	ansible-playbook -i cluster/ansible/env/ cluster/ansible/worker_nodes.yaml
 
 nodes-setup: cluster-install
-	kubectl label nodes eksnode0 kubernetes.io/role=worker
-	kubectl label nodes eksnode1 kubernetes.io/role=worker
-	kubectl label nodes eksnode0 node-type=worker
-	kubectl label nodes eksnode1 node-type=worker
+	kubectl label nodes k8snode0 kubernetes.io/role=worker
+	kubectl label nodes k8snode1 kubernetes.io/role=worker
+	kubectl label nodes k8snode0 node-type=worker
+	kubectl label nodes k8snode1 node-type=worker
 	ansible -i cluster/ansible/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
 
 cluster-uninstall:

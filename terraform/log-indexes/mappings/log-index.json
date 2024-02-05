@@ -1,23 +1,5 @@
 {
     "properties": {
-      "addr": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "api_key": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
       "bytes": {
         "type": "long"
       },
@@ -48,52 +30,6 @@
           }
         }
       },
-      "date": {
-        "type": "float"
-      },
-      "duration": {
-        "type": "long"
-      },
-      "duration_display": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "file": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "func": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "headers": {
-        "properties": {
-          "x-api-key": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
-            }
-          }
-        }
-      },
       "hostname": {
         "type": "text",
         "fields": {
@@ -112,25 +48,7 @@
           }
         }
       },
-      "log": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
       "message": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "method": {
         "type": "text",
         "fields": {
           "keyword": {
@@ -142,37 +60,7 @@
       "migrations_done": {
         "type": "long"
       },
-      "migrations_to_do": {
-        "type": "long"
-      },
       "msg": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "path": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "proto": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "remote_ip": {
         "type": "text",
         "fields": {
           "keyword": {
@@ -190,7 +78,7 @@
           }
         }
       },
-      "setup_log_level": {
+      "source": {
         "type": "text",
         "fields": {
           "keyword": {
@@ -199,7 +87,7 @@
           }
         }
       },
-      "source": {
+      "trace_id": {
         "type": "text",
         "fields": {
           "keyword": {
@@ -217,29 +105,11 @@
           }
         }
       },
-      "status_code": {
-        "type": "long"
-      },
       "time": {
         "type": "date"
       },
-      "trace_id": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "url": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
+      "date": {
+        "type": "float"
       }
     }
   }

@@ -1,0 +1,53 @@
+{
+    "policy": {
+        "policy_id": "rollover_6h_delete_after_1d",
+        "description": "Rollover every 6h, then closes those and delete indices after 1d days",
+        "default_state": "Rollover",
+        "schema_version": 1,
+        "states": [
+            {
+                "name": "Rollover",
+                "actions": [
+                    {
+                        "rollover": {
+                            "min_index_age": "1h"
+                        }
+                    }
+                ],
+                "transitions": [
+                    {
+                        "state_name": "ReadOnly",
+                        "conditions": {
+                            "min_index_age": "1h"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "ReadOnly",
+                "actions": [
+                    {
+                        "read_only": {}
+                    }
+                ],
+                "transitions": [
+                    {
+                        "state_name": "Delete",
+                        "conditions": {
+                            "min_index_age": "1d"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Delete",
+                "actions": [
+                    {
+                        "delete": {}
+                    }
+                ],
+                "transitions": []
+            }
+        ]
+    }
+}
