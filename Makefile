@@ -448,10 +448,10 @@ ks-skywalkingui-down:
 	-kubectl delete -f skywalking/frontend
 
 ks-collector: ks-collector-configmap
-	kubectl apply -f skywalking/collector
+	kubectl apply -f opensearch/otel-collector
 
 ks-collector-down: ks-collector-configmap
-	-kubectl delete -f skywalking/collector
+	-kubectl delete -f opensearch/otel-collector
 
 ks-skywalking-configmap: ks-skywalking-configmap-down
 	-kubectl create configmap -n observability skywalking-config-files --from-file=skywalking/backend/config
@@ -460,7 +460,7 @@ ks-skywalking-configmap-down:
 	-kubectl delete configmap -n observability skywalking-config-files
 
 ks-collector-configmap: ks-collector-configmap-down
-	-kubectl create configmap -n observability collector-config-files --from-file=skywalking/collector/config
+	-kubectl create configmap -n observability collector-config-files --from-file=opensearch/otel-collector/config
 
 ks-collector-configmap-down:
 	-kubectl delete configmap -n observability collector-config-files
@@ -507,22 +507,22 @@ cluster-tests:
 	ansible-playbook -i cluster/ansible/env/ ansible/cluster/testing.yaml
 
 metallb-setup:
-	helm repo add metallb https://metallb.github.io/metallb
-	helm search repo metallb
-	helm upgrade \
-		--install metallb \
-		metallb/metallb \
-		--create-namespace \
-		--namespace metallb-system \
-		--wait
+	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.3/config/manifests/metallb-native.yaml
 	kubectl apply -f cluster/metallb/resources.yaml
 
 storage-setup:
 	ansible-playbook -i cluster/ansible/env cluster/ansible/storage.yaml
 	helm repo add longhorn https://charts.longhorn.io
 	helm repo update
-	helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --set defaultSettings.defaultDataPath="/storage01"
+	helm install \
+		longhorn \
+		longhorn/longhorn \
+		--namespace longhorn-system \
+		--create-namespace --set defaultSettings.defaultDataPath="/storage01"
 	kubectl apply -f cluster/longhornui/service.yaml
+
+storage-tests:
+	ansible-playbook -i cluster/ansible/env cluster/ansible/storage.yaml
 
 cluster-setup: nodes-setup metallb-setup storage-setup
 

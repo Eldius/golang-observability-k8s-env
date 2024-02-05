@@ -12,6 +12,16 @@
         - open-iscsi
         - util-linux
 
+    - name: Wipe disk data
+      become: yes
+      command: "wipefs -a /dev/{{ var_disk }}"
+
+    - name: Create storage partition
+      become: yes
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/{{ var_disk }}
+
     - name: Configuring storage
       become: yes
       command: "blkid -s UUID -o value /dev/{{ var_disk }}"
@@ -20,3 +30,11 @@
     - name: Debugging
       debug:
         msg: "{{ disk_uuid }}"
+
+    - name: Mount and bind a volume
+      become: yes
+      ansible.posix.mount:
+        path: "{{ storage_mount_folder }}"
+        src: "UUID={{ disk_uuid.stdout }}"
+        state: mounted
+        fstype: ext4
