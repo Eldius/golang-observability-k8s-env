@@ -48,13 +48,14 @@ ks-postgres: ks-postgres-down ks-postgres-configmap
 	kubectl apply -n databases -f postgres/
 
 ks-postgres-down:
-	-cd postgres; kubectl delete -n databases -f .
+	-kubectl delete -n databases -f postgres
+	-kubectl delete namespace databases
 
 ks-fluent-bit-down: ks-fluent-bit-configmap-down
 	-cd opensearch/fluent-bit; kubectl delete -f .
 
 ks-opensearch-down:
-	-cd opensearch/opensearch; kubectl delete -f .
+	kubectl delete -f opensearch/opensearch
 
 ks-data-prepper-configmap:
 	-kubectl create configmap -n observability data-prepper-config-files --from-file=opensearch/data-prepper/configs
@@ -103,42 +104,42 @@ ks-observability-down-opensearch:
 	@echo ""
 
 ks-wait-opensearch-startup:
-	$(eval OPENSEARCH_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	$(eval OPENSEARCH_IP := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
 	@echo "[before] opensearch => $(OPENSEARCH_IP)"
 
-	until curl --fail -i --insecure -XGET https://$(shell ./fetch_ports.sh opensearch 9200 observability)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
+	until curl --fail -i --insecure -XGET https://$(shell ./scripts/fetch_ports.sh opensearch 9200 observability)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
 
-	$(eval OPENSEARCH_IP := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	$(eval OPENSEARCH_IP := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
 	@echo "[after]  opensearch => $(OPENSEARCH_IP)"
 	@echo "Opensearch up and running"
 
 ks-wait-dashboards-startup:
-	$(eval OPENSEARCH_DASHBOARDS_IP := $(shell ./fetch_ports.sh opensearch-dashboards 5601 observability))
+	$(eval OPENSEARCH_DASHBOARDS_IP := $(shell ./scripts/fetch_ports.sh opensearch-dashboards 5601 observability))
 	@echo "[before] opensearch dashboards => $(OPENSEARCH_DASHBOARDS_IP)"
 
-	until curl -i --fail -XGET 'http://$(shell ./fetch_ports.sh opensearch-dashboards 5601 observability)/app/home' -u 'admin:admin' -s -o /dev/null; do sleep 1; done
+	until curl -i --fail -XGET 'http://$(shell ./scripts/fetch_ports.sh opensearch-dashboards 5601 observability)/app/home' -u 'admin:admin' -s -o /dev/null; do sleep 1; done
 
-	$(eval OPENSEARCH_DASHBOARDS_IP := $(shell ./fetch_ports.sh opensearch-dashboards 5601 observability))
+	$(eval OPENSEARCH_DASHBOARDS_IP := $(shell ./scripts/fetch_ports.sh opensearch-dashboards 5601 observability))
 	@echo "[after]  opensearch dashboards => $(OPENSEARCH_DASHBOARDS_IP)"
 	@echo "Dashboards up and running"
 
 ks-wait-data-prepper-startup:
-	$(eval DATA_PREPPER_IP := $(shell ./fetch_ports.sh data-prepper 2021 observability))
+	$(eval DATA_PREPPER_IP := $(shell ./scripts/fetch_ports.sh data-prepper 2021 observability))
 	@echo "[before] data prepper => $(DATA_PREPPER_IP)"
 
-	until curl -i --fail -XGET 'http://$(shell ./fetch_ports.sh data-prepper 2021 observability)/health' -s -o /dev/null; do sleep 1; done
+	until curl -i --fail -XGET 'http://$(shell ./scripts/fetch_ports.sh data-prepper 2021 observability)/health' -s -o /dev/null; do sleep 1; done
 
-	$(eval DATA_PREPPER_IP := $(shell ./fetch_ports.sh data-prepper 2021 observability))
+	$(eval DATA_PREPPER_IP := $(shell ./scripts/fetch_ports.sh data-prepper 2021 observability))
 	@echo "[after]  data prepper => $(DATA_PREPPER_IP)"
 	@echo "Data Prepper up and running"
 
 ks-wait-fluent-bit-startup:
-	$(eval FLUENTBIT_IP := $(shell ./fetch_ports.sh fluent-bit 24220 observability))
+	$(eval FLUENTBIT_IP := $(shell ./scripts/fetch_ports.sh fluent-bit 24220 observability))
 	@echo "[before] fluent bit => $(FLUENTBIT_IP)"
 
-	until curl -i --fail -XGET 'http://$(shell ./fetch_ports.sh fluent-bit 24220 observability)/' -s -o /dev/null; do sleep 1; done
+	until curl -i --fail -XGET 'http://$(shell ./scripts/fetch_ports.sh fluent-bit 24220 observability)/' -s -o /dev/null; do sleep 1; done
 
-	$(eval FLUENTBIT_IP := $(shell ./fetch_ports.sh fluent-bit 24220 observability))
+	$(eval FLUENTBIT_IP := $(shell ./scripts/fetch_ports.sh fluent-bit 24220 observability))
 	@echo "[after]  fluent bit => $(FLUENTBIT_IP)"
 	@echo "FluentBit up and running"
 
@@ -343,13 +344,13 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo ""
 
 terraform-opensearch-log-indexes:
-	$(eval OPENSEARCH_HOST := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	$(eval OPENSEARCH_HOST := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
 	@echo "Opensearch Host: $(OPENSEARCH_HOST)"
 	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform init
 	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform apply -auto-approve
 
 terraform-dashboards-log-patterns:
-	$(eval OPENSEARCH_HOST := $(shell ./fetch_ports.sh opensearch 9200 observability))
+	$(eval OPENSEARCH_HOST := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
 	@echo "Opensearch Host: $(OPENSEARCH_HOST)"
 	cd terraform/index-patterns; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform init
 	cd terraform/index-patterns; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform apply -auto-approve
@@ -380,7 +381,7 @@ terraform-dashboards-log-patterns:
 # 	ls -lha temp
 
 clear-certs-temp-folder:
-	-rm -rf .truststore
+	-rm -rf $(PWD)/scripts/.truststore
 
 opensearch-certs: clear-certs-temp-folder
 	$(eval USER_ID := $(shell id -u $(USER)))
@@ -391,10 +392,10 @@ opensearch-certs: clear-certs-temp-folder
 		--name jdk \
 		-v $(PWD)/.truststore:/data \
 		-e "USER_ID=$(USER_ID)" \
-		-v $(PWD)/skywalking/opensearch_certificate.test.sh:/opensearch_certificate.sh:ro \
+		-v $(PWD)/scripts/opensearch_certificate.test.sh:/opensearch_certificate.sh:ro \
 		--entrypoint /opensearch_certificate.sh \
 		 openjdk:17-alpine
-	cp -v $(PWD)/.truststore/* $(PWD)/opensearch/opensearch/certs
+	cp -v $(PWD)/scripts/.truststore/* $(PWD)/opensearch/opensearch/certs
 
 
 skywalking-truststore: clear-certs-temp-folder
@@ -408,7 +409,7 @@ skywalking-truststore: clear-certs-temp-folder
 		-v $(PWD)/opensearch/opensearch/certs/root-ca.pem:/certificate/root-ca.pem:ro \
 		-v $(PWD)/opensearch/opensearch/certs/node1.pem:/certificate/node1.pem:ro \
 		-v $(PWD)/opensearch/opensearch/certs/client.pem:/certificate/client.pem:ro \
-		-v $(PWD)/skywalking/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
+		-v $(PWD)/scripts/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
 		-e "USER_ID=$(USER_ID)" \
 		--entrypoint /opensearch_certificate.sh \
 		 openjdk:17-alpine
@@ -426,13 +427,13 @@ test:
 		-v $(PWD)/opensearch/opensearch/certs/root-ca.pem:/certificate/root-ca.pem:ro \
 		-v $(PWD)/opensearch/opensearch/certs/node1.pem:/certificate/node1.pem:ro \
 		-v $(PWD)/opensearch/opensearch/certs/client.pem:/certificate/client.pem:ro \
-		-v $(PWD)/skywalking/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
+		-v $(PWD)/scripts/opensearch_certificate.sh:/opensearch_certificate.sh:ro \
 		-e "USER_ID=$(USER_ID)" \
 		 openjdk:17-alpine ash
 
 
 fetch_ports:
-	$(eval POSTGRES_IP := $(shell ./fetch_ports.sh POSTGRES 5432))
+	$(eval POSTGRES_IP := $(shell ./scripts/fetch_ports.sh POSTGRES 5432))
 	@echo "opensearch => $(POSTGRES_IP)"
 
 
@@ -466,52 +467,33 @@ ks-collector-configmap: ks-collector-configmap-down
 ks-collector-configmap-down:
 	-kubectl delete configmap -n observability collector-config-files
 
-ks-wait-collector-startup:
-	$(COLLECTOR HOST $(shell ./fetch_ports.sh otel-collector 13133 observability))
-	@echo "[before] opensearch => $(COLLECTOR_HOST)"
-	until curl --fail -i --insecure -XGET http://$(shell ./fetch_ports.sh otel-collector 13133 observability)/health/status; do sleep 1; done
-	$(eval COLLECTOR_HOST := $(shell ./fetch_ports.sh otel-collector 13133 observability))
-	@echo "[after]  opensearch => $(COLLECTOR_HOST)"
-	@echo "OTEL Collector up and running"
-
-ks-wait-skywalking-startup:
-	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh skywalking 11800 observability))
-	@echo "[before] skywalking => $(SKYWALKING_IP)"
-	until grpcurl -plaintext -proto skywalking/backend/config/healthcheck.proto -connect-timeout $(CONNECTION_TIMEOUT) -max-time $(READ_TIMEOUT) $(shell ./fetch_ports.sh skywalking 11800 observability) grpc.health.v1.Health.Check; do echo "still waiting"; sleep 1; done
-	$(eval SKYWALKING_IP := $(shell ./fetch_ports.sh skywalking 11800 observability))
-	@echo "[after]  skywalking => $(SKYWALKING_IP)"
-	@echo "Skywalking up and running"
-
-ks-wait-skywalkingui-startup:
-	$(eval SKYWALKINGUI_IP := $(shell ./fetch_ports.sh skywalkingui 8080 observability))
-	@echo "[before] skywalking => $(SKYWALKINGUI_IP)"
-	until  curl --fail -i --insecure -XGET http://$(shell ./fetch_ports.sh skywalkingui 8080 observability); do echo "still waiting"; sleep 1; done
-	$(eval SKYWALKINGUI_IP := $(shell ./fetch_ports.sh skywalkingui 8080 observability))
-	@echo "[after]  skywalking => $(SKYWALKINGUI_IP)"
-	@echo "Skywalking up and running"
-
 cluster-install:
-	ansible-playbook -i cluster/ansible/env/ cluster/ansible/master.yaml
-	ansible-playbook -i cluster/ansible/env/ cluster/ansible/worker_nodes.yaml
-
-nodes-setup: cluster-install
+	ansible-playbook -i cluster/ansible/env/ cluster/ansible/k3s_master_install.yaml
+	ansible-playbook -i cluster/ansible/env/ cluster/ansible/k3s_workers_install.yaml
+	ansible -i cluster/ansible/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
+	sftp eldius@192.168.100.101:/etc/rancher/k3s/k3s.yaml ~/.kube/config
 	kubectl label nodes k8snode0 kubernetes.io/role=worker
 	kubectl label nodes k8snode1 kubernetes.io/role=worker
 	kubectl label nodes k8snode0 node-type=worker
 	kubectl label nodes k8snode1 node-type=worker
-	ansible -i cluster/ansible/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
 
 cluster-uninstall:
-	ansible-playbook -i cluster/ansible/env/ ansible/cluster/master_uninstall.yaml
+	ansible-playbook -i cluster/ansible/env/ cluster/ansible/k3s_uninstall.yaml
 
 cluster-tests:
 	ansible-playbook -i cluster/ansible/env/ ansible/cluster/testing.yaml
 
-metallb-setup:
+metallb-install:
 	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.3/config/manifests/metallb-native.yaml
+
+metallb-config:
 	kubectl apply -f cluster/metallb/resources.yaml
 
-storage-setup:
+metallb-uninstall:
+	-kubectl delete -f cluster/metallb/resources.yaml
+	kubectl delete -f https://raw.githubusercontent.com/metallb/metallb/v0.14.3/config/manifests/metallb-native.yaml
+
+storage-install:
 	ansible-playbook -i cluster/ansible/env cluster/ansible/storage.yaml
 	helm repo add longhorn https://charts.longhorn.io
 	helm repo update
@@ -522,10 +504,19 @@ storage-setup:
 		--create-namespace --set defaultSettings.defaultDataPath="/storage01"
 	kubectl apply -f cluster/longhornui/service.yaml
 
+storage-uninstall:
+	-kubectl delete -f cluster/longhornui/service.yaml
+	helm uninstall \
+		longhorn \
+		--namespace longhorn-system
+
 storage-tests:
 	ansible-playbook -i cluster/ansible/env cluster/ansible/storage.yaml
 
 cluster-setup: nodes-setup metallb-setup storage-setup
+
+ping-hosts:
+	ansible -i cluster/ansible/env cube -a "uname -a"
 
 up:
 	$(MAKE) ks-setup-opensearch

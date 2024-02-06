@@ -4,6 +4,9 @@
 .terraform
 *.tfstate*
 
+scripts/.truststore/**
 .truststore/**
 
 cluster/.kube/*.json
+
+cluster/ansible/.kube/**

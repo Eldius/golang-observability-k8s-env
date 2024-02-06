@@ -12,6 +12,13 @@
         - open-iscsi
         - util-linux
 
+    - name: Unmount volume before wipe it out
+      become: yes
+      ansible.posix.mount:
+        path: "{{ storage_mount_folder }}"
+        state: unmounted
+        fstype: ext4
+
     - name: Wipe disk data
       become: yes
       command: "wipefs -a /dev/{{ var_disk }}"

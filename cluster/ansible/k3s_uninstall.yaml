@@ -1,6 +1,6 @@
 ---
 - name: Uninstall k3s cluster
-  hosts: master
+  hosts: cube
   vars:
     
   tasks:
