@@ -38,16 +38,17 @@ ks-fluent-bit: ks-fluent-bit-configmap
 	kubectl apply -f opensearch/fluent-bit
 
 ks-postgres-configmap: ks-postgres-configmap-down
-	-kubectl create configmap -n observability postgres-init-scripts --from-file=postgres/scripts
+	-kubectl create configmap -n databases postgres-init-scripts --from-file=postgres/scripts
 
 ks-postgres-configmap-down:
-	-kubectl delete configmap postgres-init-scripts
+	-kubectl delete configmap -n databases postgres-init-scripts
 
 ks-postgres: ks-postgres-down ks-postgres-configmap
-	cd postgres; kubectl apply -f .
+	-kubectl create namespace databases
+	kubectl apply -n databases -f postgres/
 
 ks-postgres-down:
-	-cd postgres; kubectl delete -f .
+	-cd postgres; kubectl delete -n databases -f .
 
 ks-fluent-bit-down: ks-fluent-bit-configmap-down
 	-cd opensearch/fluent-bit; kubectl delete -f .

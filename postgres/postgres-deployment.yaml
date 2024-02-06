@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-deployment
+  namespace: databases
   labels:
     app: postgres
 spec:
@@ -30,6 +31,8 @@ spec:
         volumeMounts:
         - name: init-scripts
           mountPath: /docker-entrypoint-initdb.d/
+        - name: app-postgres-pv-claim
+          mountPath: "/var/lib/postgresql/data"
         resources:
           limits:
             memory: 256M
@@ -45,3 +48,6 @@ spec:
               path: 001_creating_app_db.sql
             - key: 002_creating_skywalking_db.sql
               path: 002_creating_skywalking_db.sql
+        - name: app-postgres-pv-claim
+          persistentVolumeClaim:
+            claimName: app-postgres-pv-claim

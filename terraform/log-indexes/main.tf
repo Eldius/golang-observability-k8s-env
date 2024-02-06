@@ -40,8 +40,3 @@ resource "opensearch_index" "logs" {
   mappings           = file("${path.module}/mappings/log-index.json")
   # mappings           = "{}"
 }
-
-resource "opensearch_ism_policy_mapping" "logs_cleanup" {
-  policy_id = "default_delete_after_1d"
-  indexes   = "application-logs-00001"
-}

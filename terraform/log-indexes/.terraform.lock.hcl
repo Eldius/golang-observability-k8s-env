@@ -2,8 +2,7 @@
 # Manual edits may be lost in future updates.
 
 provider "registry.terraform.io/opensearch-project/opensearch" {
-  version     = "2.2.0"
-  constraints = "2.2.0"
+  version = "2.2.0"
   hashes = [
     "h1:ZLnqDpaoHsMSlxMflBTfmkSXmqnSnU8TebF+X1ai7Wk=",
     "zh:057262ad89649f9ff90afb7f8c220f75c8ebbe9eaf6aa5bf6d9cf50b3f388956",
