@@ -90,8 +90,6 @@ ks-observability-down-opensearch:
 	$(MAKE) ks-fluent-bit-configmap-down
 	$(MAKE) ks-collector-down
 	$(MAKE) ks-collector-configmap-down
-	$(MAKE) ks-skywalking-down
-	$(MAKE) ks-skywalking-configmap-down
 	$(MAKE) ks-collector-down
 	$(MAKE) ks-data-prepper-down
 	$(MAKE) ks-data-prepper-configmap-down
@@ -280,38 +278,6 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo ""
 	@echo ""
 
-
-	@echo "-----"
-	@echo "Creating Skywalking OAP configmap"
-	@echo "-----"
-	@echo ""
-	$(MAKE) ks-skywalking-configmap
-	@echo "*****"
-	@echo ""
-	@echo ""
-	@echo ""
-
-	@echo "-----"
-	@echo "Creating Skywalking OAP"
-	@echo "-----"
-	@echo ""
-	$(MAKE) ks-skywalking
-	@echo "*****"
-	@echo ""
-	@echo ""
-	@echo ""
-
-	@echo "-----"
-	@echo "Waiting Skywalking OAP startup"
-	@echo "-----"
-	@echo ""
-	$(MAKE) ks-wait-skywalking-startup
-	@echo ""
-	@echo "*****"
-	@echo ""
-	@echo ""
-	@echo ""
-
 	@echo "-----"
 	@echo "Creating OTEL Collector configmap"
 	@echo "-----"
@@ -355,31 +321,6 @@ terraform-dashboards-log-patterns:
 	cd terraform/index-patterns; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform init
 	cd terraform/index-patterns; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform apply -auto-approve
 
-# ks-uptrace-clickhouse-configmap: ks-uptrace-clickhouse-configmap-down
-# 	kubectl create configmap -n observability uptrace-clickhouse-config-files --from-file=uptrace/clickhouse/config
-
-# ks-uptrace-clickhouse-configmap-down:
-# 	-kubectl delete configmap uptrace-clickhouse-config-files
-
-# ks-uptrace-clickhouse:
-# 	cd uptrace/clickhouse; kubectl apply -f .
-
-# ks-uptrace-clickhouse-down:
-# 	cd uptrace/clickhouse; kubectl delete -f .
-
-# test:
-# 	# docker run -it --rm --name jdk -v temp:/data openjdk:17 keytool -h
-# 	docker \
-# 		run \
-# 		-it \
-# 		--rm \
-# 		--name jdk \
-# 		-v $(PWD)/.truststore:/data \
-# 		-v $(PWD)/opensearch/data-prepper/configs/root-ca.pem:/certificate/root-ca.pem:ro \
-# 		 openjdk:17-alpine \
-# 		'apk add --update openssl && openssl x509 -outform der -in /certificate/root-ca.pem -out /data/certificate.der && keytool -genkey -alias bmc -keyalg RSA -keystore /data/KeyStore.jks -keysize 2048 && -import -file /data/certificate.der -keystore /data/KeyStore.jks'
-# 	ls -lha temp
-
 clear-certs-temp-folder:
 	-rm -rf $(PWD)/scripts/.truststore
 
@@ -398,7 +339,7 @@ opensearch-certs: clear-certs-temp-folder
 	cp -v $(PWD)/scripts/.truststore/* $(PWD)/opensearch/opensearch/certs
 
 
-skywalking-truststore: clear-certs-temp-folder
+truststore: clear-certs-temp-folder
 	$(eval USER_ID := $(shell id -u $(USER)))
 	docker \
 		run \
@@ -413,7 +354,6 @@ skywalking-truststore: clear-certs-temp-folder
 		-e "USER_ID=$(USER_ID)" \
 		--entrypoint /opensearch_certificate.sh \
 		 openjdk:17-alpine
-	cp -v $(PWD)/.truststore/KeyStore.jks $(PWD)/skywalking/backend/config
 
 
 test:
@@ -468,55 +408,34 @@ ks-collector-configmap-down:
 	-kubectl delete configmap -n observability collector-config-files
 
 cluster-install:
-	ansible-playbook -i cluster/ansible/env/ cluster/ansible/k3s_master_install.yaml
-	ansible-playbook -i cluster/ansible/env/ cluster/ansible/k3s_workers_install.yaml
-	ansible -i cluster/ansible/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
-	sftp eldius@192.168.100.101:/etc/rancher/k3s/k3s.yaml ~/.kube/config
-	kubectl label nodes k8snode0 kubernetes.io/role=worker
-	kubectl label nodes k8snode1 kubernetes.io/role=worker
-	kubectl label nodes k8snode0 node-type=worker
-	kubectl label nodes k8snode1 node-type=worker
+	@(MAKE) -C cluster k3s-install
 
 cluster-uninstall:
-	ansible-playbook -i cluster/ansible/env/ cluster/ansible/k3s_uninstall.yaml
+	@(MAKE) -C cluster k3s-uninstall
 
 cluster-tests:
 	ansible-playbook -i cluster/ansible/env/ ansible/cluster/testing.yaml
 
 metallb-install:
-	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.3/config/manifests/metallb-native.yaml
+	@(MAKE) -C cluster metallb-install
 
 metallb-config:
-	kubectl apply -f cluster/metallb/resources.yaml
+	@(MAKE) -C cluster metallb-config
 
 metallb-uninstall:
-	-kubectl delete -f cluster/metallb/resources.yaml
-	kubectl delete -f https://raw.githubusercontent.com/metallb/metallb/v0.14.3/config/manifests/metallb-native.yaml
+	@(MAKE) -C cluster metallb-uninstall
 
 storage-install:
-	ansible-playbook -i cluster/ansible/env cluster/ansible/storage.yaml
-	helm repo add longhorn https://charts.longhorn.io
-	helm repo update
-	helm install \
-		longhorn \
-		longhorn/longhorn \
-		--namespace longhorn-system \
-		--create-namespace --set defaultSettings.defaultDataPath="/storage01"
-	kubectl apply -f cluster/longhornui/service.yaml
+	@(MAKE) -C cluster storage-install
 
 storage-uninstall:
-	-kubectl delete -f cluster/longhornui/service.yaml
-	helm uninstall \
-		longhorn \
-		--namespace longhorn-system
+	@(MAKE) -C cluster storage-uninstall
 
 storage-tests:
 	ansible-playbook -i cluster/ansible/env cluster/ansible/storage.yaml
 
-cluster-setup: nodes-setup metallb-setup storage-setup
-
 ping-hosts:
-	ansible -i cluster/ansible/env cube -a "uname -a"
+	@(MAKE) -C cluster ping-hosts
 
 up:
 	$(MAKE) ks-setup-opensearch
