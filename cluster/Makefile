@@ -1,8 +1,8 @@
 
 k3s-install:
-	ansible-playbook -i cluster/ansible/env/ cluster/ansible/k3s_master_install.yaml
-	ansible-playbook -i cluster/ansible/env/ cluster/ansible/k3s_workers_install.yaml
-	ansible -i cluster/ansible/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
+	ansible-playbook -i ansible/env/ ansible/k3s_master_install.yaml
+	ansible-playbook -i ansible/env/ ansible/k3s_workers_install.yaml
+	ansible -i ansible/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
 	sftp eldius@192.168.100.101:/etc/rancher/k3s/k3s.yaml ~/.kube/config
 	kubectl label nodes k8snode0 kubernetes.io/role=worker
 	kubectl label nodes k8snode1 kubernetes.io/role=worker
@@ -14,6 +14,9 @@ k3s-uninstall:
 
 k3s-tests:
 	ansible-playbook -i ansible/env/ ansible/testing.yaml
+
+cluster-network: metallb-install metallb-config
+	@echo "MetallB Installed..."
 
 metallb-install:
 	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.3/config/manifests/metallb-native.yaml

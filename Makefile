@@ -43,7 +43,7 @@ ks-postgres-configmap: ks-postgres-configmap-down
 ks-postgres-configmap-down:
 	-kubectl delete configmap -n databases postgres-init-scripts
 
-ks-postgres: ks-postgres-down ks-postgres-configmap
+ks-postgres: ks-postgres-configmap
 	-kubectl create namespace databases
 	kubectl apply -n databases -f postgres/
 
@@ -55,7 +55,7 @@ ks-fluent-bit-down: ks-fluent-bit-configmap-down
 	-cd opensearch/fluent-bit; kubectl delete -f .
 
 ks-opensearch-down:
-	kubectl delete -f opensearch/opensearch
+	-kubectl delete -f opensearch/opensearch
 
 ks-data-prepper-configmap:
 	-kubectl create configmap -n observability data-prepper-config-files --from-file=opensearch/data-prepper/configs
@@ -310,7 +310,8 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo ""
 
 terraform-opensearch-log-indexes:
-	$(eval OPENSEARCH_HOST := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
+	# $(eval OPENSEARCH_HOST := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
+	$(eval OPENSEARCH_HOST := "192.168.100.203:9200")
 	@echo "Opensearch Host: $(OPENSEARCH_HOST)"
 	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform init
 	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform apply -auto-approve
@@ -408,37 +409,40 @@ ks-collector-configmap-down:
 	-kubectl delete configmap -n observability collector-config-files
 
 cluster-install:
-	@(MAKE) -C cluster k3s-install
+	$(MAKE) -C cluster k3s-install
 
 cluster-uninstall:
-	@(MAKE) -C cluster k3s-uninstall
+	$(MAKE) -C cluster k3s-uninstall
 
 cluster-tests:
 	ansible-playbook -i cluster/ansible/env/ ansible/cluster/testing.yaml
 
+cluster-network:
+	$(MAKE) -C cluster cluster-network
+
 metallb-install:
-	@(MAKE) -C cluster metallb-install
+	$(MAKE) -C cluster metallb-install
 
 metallb-config:
-	@(MAKE) -C cluster metallb-config
+	$(MAKE) -C cluster metallb-config
 
 metallb-uninstall:
-	@(MAKE) -C cluster metallb-uninstall
+	$(MAKE) -C cluster metallb-uninstall
 
-storage-install:
-	@(MAKE) -C cluster storage-install
+cluster-storage:
+	$(MAKE) -C cluster storage-install
 
 storage-uninstall:
-	@(MAKE) -C cluster storage-uninstall
+	$(MAKE) -C cluster storage-uninstall
 
 storage-tests:
 	ansible-playbook -i cluster/ansible/env cluster/ansible/storage.yaml
 
 ping-hosts:
-	@(MAKE) -C cluster ping-hosts
+	$(MAKE) -C cluster ping-hosts
 
-up:
+observability:
 	$(MAKE) ks-setup-opensearch
 
-down:
+observability-down:
 	$(MAKE) ks-observability-down-opensearch
