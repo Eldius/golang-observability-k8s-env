@@ -28,6 +28,7 @@ resource "opensearch_ism_policy" "logs_cleanup_policy" {
 
 # Create a simple index
 resource "opensearch_index" "logs" {
+  depends_on = [ opensearch_ism_policy.logs_cleanup_policy ]
   name               = "application-logs-00001"
   number_of_shards   = 1
   number_of_replicas = 0

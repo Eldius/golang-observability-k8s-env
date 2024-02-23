@@ -101,6 +101,17 @@ ks-observability-down-opensearch:
 	@echo ""
 	@echo ""
 
+ks-wait-collector-startup:
+	$(eval COLLECTOR_IP := $(shell ./scripts/fetch_ports.sh otel-collector 9200 observability))
+	@echo "[before] otel-collector => $(COLLECTOR_IP)"
+
+	until curl --fail -i --insecure -XGET https://$(shell ./scripts/fetch_ports.sh otel-collector 9200 observability)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
+
+	$(eval COLLECTOR_IP := $(shell ./scripts/fetch_ports.sh otel-collector 9200 observability))
+	@echo "[after]  otel-collector => $(COLLECTOR_IP)"
+	@echo "OTEL Collector up and running"
+
+
 ks-wait-opensearch-startup:
 	$(eval OPENSEARCH_IP := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
 	@echo "[before] opensearch => $(OPENSEARCH_IP)"
@@ -310,8 +321,7 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo ""
 
 terraform-opensearch-log-indexes:
-	# $(eval OPENSEARCH_HOST := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
-	$(eval OPENSEARCH_HOST := "192.168.100.203:9200")
+	$(eval OPENSEARCH_HOST := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
 	@echo "Opensearch Host: $(OPENSEARCH_HOST)"
 	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform init
 	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform apply -auto-approve

@@ -17,10 +17,12 @@ then
     NAMESPACE="default"
 fi
 
+KUBECTL_OPTS="--request-timeout 10s"
+
 # EXTPORT=`${KUBECTL} get svc $SERVICENAME -n $NAMESPACE -o=jsonpath="{.spec.ports[?(@.port==${INTERNALPORT})].nodePort}"`
 # kubectl get svc -n databases postgres --output=yaml -o=go-template='{{ (index .status.loadBalancer.ingress 0).ip  }}'
 
-EXTIP=`${KUBECTL} get svc $SERVICENAME -n $NAMESPACE -o=go-template='{{ (index .status.loadBalancer.ingress 0).ip  }}'`
+EXTIP=`${KUBECTL} ${KUBECTL_OPTS} get svc $SERVICENAME -n $NAMESPACE -o=go-template='{{ (index .status.loadBalancer.ingress 0).ip  }}'`
 
 
 if [[ -z $EXTIP ]]
