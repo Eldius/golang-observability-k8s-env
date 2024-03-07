@@ -88,6 +88,7 @@ ks-observability-down-opensearch:
 	@echo ""
 	$(MAKE) ks-fluent-bit-down
 	$(MAKE) ks-fluent-bit-configmap-down
+	$(MAKE) ks-jaeger-down
 	$(MAKE) ks-collector-down
 	$(MAKE) ks-collector-configmap-down
 	$(MAKE) ks-collector-down
@@ -110,6 +111,17 @@ ks-wait-collector-startup:
 	$(eval COLLECTOR_IP := $(shell ./scripts/fetch_ports.sh otel-collector 13133 observability))
 	@echo "[after]  otel-collector => $(COLLECTOR_IP)"
 	@echo "OTEL Collector up and running"
+
+
+ks-wait-jaeger-startup:
+	$(eval JAEGER_IP := $(shell ./scripts/fetch_ports.sh jaeger 16686 observability))
+	@echo "[before] jaeger => $(JAEGER_IP)"
+
+	until curl --fail -i --insecure -XGET http://$(shell ./scripts/fetch_ports.sh jaeger 16686 observability)/health/status; do sleep 1; done
+
+	$(eval JAEGER_IP := $(shell ./scripts/fetch_ports.sh jaeger 16686 observability))
+	@echo "[after]  jaeger => $(JAEGER_IP)"
+	@echo "Jaeger up and running"
 
 
 ks-wait-opensearch-startup:
@@ -301,6 +313,27 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo ""
 
 	@echo "-----"
+	@echo "Creating Jaeger"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-jaeger
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Waiting Jaeger startup"
+	@echo "-----"
+	@echo ""
+	$(MAKE) ks-wait-jaeger-startup
+	@echo ""
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
 	@echo "Creating OTEL Collector configmap"
 	@echo "-----"
 	@echo ""
@@ -431,6 +464,12 @@ ks-collector: ks-collector-configmap
 
 ks-collector-down: ks-collector-configmap
 	-kubectl delete -f opensearch/otel-collector
+
+ks-jaeger:
+	kubectl apply -f jaeger/all-in-one
+
+ks-jaeger-down:
+	-kubectl delete -f jaeger/all-in-one
 
 ks-skywalking-configmap: ks-skywalking-configmap-down
 	-kubectl create configmap -n observability skywalking-config-files --from-file=skywalking/backend/config

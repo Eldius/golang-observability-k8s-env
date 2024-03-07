@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-deployment
+  namespace: observability
+  labels:
+    app: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      namespace: observability
+      labels:
+        app: jaeger
+    spec:
+      containers:
+        - name: jaeger
+          env:
+            - name: COLLECTOR_OTLP_ENABLED
+              value: "true"
+            - name: LOG_LEVEL
+              value: debug
+          image: jaegertracing/all-in-one:latest
+          ports:
+            - containerPort: 5601    #
+            - containerPort: 16686   # UI
+            - containerPort: 14268   # 
+            - containerPort: 4317    # OTLP over gRPC receiver
+            - containerPort: 4318    # OTLP over HTTP receiver
+            - containerPort: 9464    # Prometheus exporter
+            - containerPort: 8888    # metrics endpoint
+          command: ["/go/bin/all-in-one-linux"]
+          args: ["--collector.otlp.grpc.host-port", ":4317"]
+          resources:
+            limits:
+              memory: 512M
+              # cpu: 1
+            requests:
+              memory: 512M
+          startupProbe:
+            httpGet:
+              path: /app/home
+              port: 16686
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /app/home
+              port: 16686
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      restartPolicy: Always
