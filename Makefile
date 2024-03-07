@@ -102,12 +102,12 @@ ks-observability-down-opensearch:
 	@echo ""
 
 ks-wait-collector-startup:
-	$(eval COLLECTOR_IP := $(shell ./scripts/fetch_ports.sh otel-collector 9200 observability))
+	$(eval COLLECTOR_IP := $(shell ./scripts/fetch_ports.sh otel-collector 13133 observability))
 	@echo "[before] otel-collector => $(COLLECTOR_IP)"
 
-	until curl --fail -i --insecure -XGET https://$(shell ./scripts/fetch_ports.sh otel-collector 9200 observability)/_cluster/health -u 'admin:admin' | grep -E '("status":"yellow"|"status":"green")'; do sleep 1; done
+	until curl --fail -i --insecure -XGET http://$(shell ./scripts/fetch_ports.sh otel-collector 13133 observability)/health/status; do sleep 1; done
 
-	$(eval COLLECTOR_IP := $(shell ./scripts/fetch_ports.sh otel-collector 9200 observability))
+	$(eval COLLECTOR_IP := $(shell ./scripts/fetch_ports.sh otel-collector 13133 observability))
 	@echo "[after]  otel-collector => $(COLLECTOR_IP)"
 	@echo "OTEL Collector up and running"
 
@@ -179,6 +179,17 @@ ks-setup-opensearch: ks-observability-down-opensearch ks-observability-namespace
 	@echo "-----"
 	@echo ""
 	$(MAKE) ks-wait-opensearch-startup
+	@echo ""
+	@echo "*****"
+	@echo ""
+	@echo ""
+	@echo ""
+
+	@echo "-----"
+	@echo "Setting up index rolout policy"
+	@echo "-----"
+	@echo ""
+	$(MAKE) terraform-opensearch-rollout-policies
 	@echo ""
 	@echo "*****"
 	@echo ""
@@ -325,6 +336,21 @@ terraform-opensearch-log-indexes:
 	@echo "Opensearch Host: $(OPENSEARCH_HOST)"
 	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform init
 	cd terraform/log-indexes; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform apply -auto-approve
+
+terraform-opensearch-rollout-policies:
+	$(eval OPENSEARCH_HOST := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
+	@echo "Opensearch Host: $(OPENSEARCH_HOST)"
+	curl \
+		--insecure \
+		-u "admin:admin" \
+		-H 'Content-Type: application/json' \
+		-i \
+		-XPUT \
+		"https://$(OPENSEARCH_HOST)/_plugins/_ism/policies/default_delete_after_1d" \
+		-d "@terraform/index-rollout-policy/policy/default_delete_after_1d.json"
+
+	# cd terraform/index-rollout-policy; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform init
+	# cd terraform/index-rollout-policy; OPENSEARCH_URL="https://$(OPENSEARCH_HOST)" terraform apply -auto-approve
 
 terraform-dashboards-log-patterns:
 	$(eval OPENSEARCH_HOST := $(shell ./scripts/fetch_ports.sh opensearch 9200 observability))
