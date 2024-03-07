@@ -8,15 +8,15 @@ metadata:
     app: jaeger
 spec:
   ports:
-    - name: "5601"
-      port: 5601
-      targetPort: 5601
+    - name: "4317"
+      port: 4317
+      targetPort: 4317
     - name: "16686"
       port: 16686
       targetPort: 16686
-    - name: "14268"
-      port: 14268
-      targetPort: 14268
+    - name: "8888"
+      port: 8888
+      targetPort: 8888
   type: LoadBalancer
   selector:
     app: jaeger

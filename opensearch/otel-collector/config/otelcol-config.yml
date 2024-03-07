@@ -26,7 +26,7 @@ service:
     traces:
       receivers: [otlp/traces]
       processors: [batch]
-      exporters: [otlp/data-prepper/traces]
+      exporters: [otlp/data-prepper/traces, otlp/jaeger]
     metrics:
       receivers: [otlp/metrics]
       processors: [batch]
@@ -50,8 +50,11 @@ exporters:
     tls:
       insecure: true
       insecure_skip_verify: true
-  otlp/jaeger/traces:
-    endpoint: http://jaeger:4317
+  otlp/jaeger:
+    endpoint: https://jaeger:4317
+    tls:
+      insecure: true
+      insecure_skip_verify: true
 processors:
     batch:
     span:
