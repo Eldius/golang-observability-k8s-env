@@ -51,7 +51,7 @@ exporters:
       insecure: true
       insecure_skip_verify: true
   otlp/jaeger:
-    endpoint: https://jaeger:4317
+    endpoint: jaeger:4317
     tls:
       insecure: true
       insecure_skip_verify: true
