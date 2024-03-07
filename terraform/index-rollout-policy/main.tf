@@ -7,7 +7,7 @@ terraform {
     # }
     opensearch = {
       source = "opensearch-project/opensearch"
-      version = "2.2.0"
+      # version = "2.2.0"
     }
   }
 
@@ -21,17 +21,7 @@ provider "opensearch" {
   insecure = true
 }
 
-# Create a simple index
-resource "opensearch_index" "logs" {
-  name               = "application-logs-00001"
-  number_of_shards   = 1
-  number_of_replicas = 0
-
-  aliases            = jsonencode({
-    "application-logs" = {
-      "is_write_index" = true
-    }
-  })
-  mappings           = file("${path.module}/mappings/log-index.json")
-  # mappings           = "{}"
+resource "opensearch_ism_policy" "logs_cleanup_policy" {
+  policy_id = "default_logs_delete_after_1d"
+  body      = file("${path.module}/policy/default_delete_after_1d.json")
 }

@@ -1,6 +1,5 @@
 {
     "policy": {
-        "policy_id": "rollover_6h_delete_after_1d",
         "description": "Rollover every 6h, then closes those and delete indices after 1d days",
         "default_state": "Rollover",
         "schema_version": 1,
