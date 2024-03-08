@@ -37,14 +37,19 @@ ks-data-prepper-down: ks-data-prepper-configmap-down
 ks-fluent-bit: ks-fluent-bit-configmap
 	kubectl apply -f opensearch/fluent-bit
 
-ks-postgres-configmap: ks-postgres-configmap-down
+ks-databases-namespace:
+	-kubectl create namespace databases
+
+ks-databases-namespace-down:
+	-kubectl delete namespace databases
+
+ks-postgres-configmap: ks-postgres-configmap-down ks-databases-namespace
 	-kubectl create configmap -n databases postgres-init-scripts --from-file=postgres/scripts
 
 ks-postgres-configmap-down:
 	-kubectl delete configmap -n databases postgres-init-scripts
 
-ks-postgres: ks-postgres-configmap
-	-kubectl create namespace databases
+ks-postgres: ks-databases-namespace ks-postgres-configmap
 	kubectl apply -n databases -f postgres/
 
 ks-postgres-down:

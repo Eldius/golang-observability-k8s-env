@@ -33,6 +33,7 @@ spec:
           mountPath: /docker-entrypoint-initdb.d/
         - name: app-postgres-pv-claim
           mountPath: "/var/lib/postgresql/data"
+          subPath: pgdata
         resources:
           limits:
             memory: 256M
