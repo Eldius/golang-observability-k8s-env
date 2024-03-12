@@ -53,8 +53,13 @@ ks-postgres: ks-databases-namespace ks-postgres-configmap
 	kubectl apply -n databases -f postgres/
 
 ks-postgres-down:
-	-kubectl delete -n databases -f postgres
 	-kubectl delete namespace databases
+
+ks-timeseries: ks-databases-namespace
+	kubectl apply -n databases -f timescale-db/
+
+ks-timeseries-down:
+	-kubectl delete -n databases -f timescale-db/
 
 ks-fluent-bit-down: ks-fluent-bit-configmap-down
 	-cd opensearch/fluent-bit; kubectl delete -f .

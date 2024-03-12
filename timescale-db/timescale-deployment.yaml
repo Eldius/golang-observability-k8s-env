@@ -1,0 +1,56 @@
+---
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: timeseriesdb-deployment
+  namespace: databases
+  labels:
+    app: timeseriesdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: timeseriesdb
+  template:
+    metadata:
+      labels:
+        app: timeseriesdb
+    spec:
+      containers:
+      - name: timeseriesdb
+        image: timescale/timescaledb-ha:pg16
+        env:
+        - name: timeseriesdb_USER
+          value: root
+        - name: timeseriesdb_DB
+          value: root
+        - name: timeseriesdb_PASSWORD
+          value: P@ss
+        ports:
+          - containerPort: 5432
+        volumeMounts:
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d/
+        - name: app-timeseries-pv-claim
+          mountPath: "/home/timeseriesdb/pgdata/data"
+          subPath: pgdata
+        resources:
+          limits:
+            memory: 256M
+          requests:
+            memory: 256M
+      restartPolicy: Always
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: timeseriesdb-init-scripts
+            items:
+            - key: 001_creating_app_db.sql
+              path: 001_creating_app_db.sql
+            - key: 002_creating_skywalking_db.sql
+              path: 002_creating_skywalking_db.sql
+        - name: app-timeseriesdb-pv-claim
+          persistentVolumeClaim:
+            claimName: app-timeseries-pv-claim
+
