@@ -26,9 +26,9 @@ spec:
             - containerPort: 2021
           resources:
             limits:
-              memory: 768M
+              memory: 1G
             requests:
-              memory: 768M
+              memory: 1G
           volumeMounts:
           - name: data-prepper-config-yaml
             mountPath: /usr/share/data-prepper/config

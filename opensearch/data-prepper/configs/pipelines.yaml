@@ -54,22 +54,22 @@ metrics-pipeline:
         password: admin
         index: "metrics-otel-v1"
 
-log-pipeline:
-  source:
-    http:
-      ssl: false
-      port: 2021
-      health_check_service: true
-      unauthenticated_health_check: true
-      path: /log/ingest
-      authentication:
-        unauthenticated:
-  sink:
-    - opensearch:
-        hosts: [ "https://opensearch:9200" ]
-        insecure: true
-        username: admin
-        password: admin
-        index: "application-logs"
-        # index: "custom-logs-%{yyyy.MM.dd}"
-        # indexAlias: "custom-logs"
+# log-pipeline:
+#   source:
+#     http:
+#       ssl: false
+#       port: 2021
+#       health_check_service: true
+#       unauthenticated_health_check: true
+#       path: /log/ingest
+#       authentication:
+#         unauthenticated:
+#   sink:
+#     - opensearch:
+#         hosts: [ "https://opensearch:9200" ]
+#         insecure: true
+#         username: admin
+#         password: admin
+#         index: "application-logs"
+#         # index: "custom-logs-%{yyyy.MM.dd}"
+#         # indexAlias: "custom-logs"
