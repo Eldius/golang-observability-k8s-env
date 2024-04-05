@@ -23,6 +23,10 @@ cat /etc/rancher/k3s/k3s.yaml
 vim  ~/.kube/config
 ```
 
+```shell
+ansible -i cluster/ansible/env/ all -m ping -v
+```
+
 ## opensearch validations ##
 
 ```bash
