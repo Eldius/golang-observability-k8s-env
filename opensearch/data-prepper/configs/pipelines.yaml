@@ -55,6 +55,10 @@ metrics-pipeline:
         index: "metrics-otel-v1"
 
 log-pipeline:
+  buffer:
+    bounded_blocking:
+      buffer_size: 512
+      batch_size: 64
   source:
     http:
       ssl: false

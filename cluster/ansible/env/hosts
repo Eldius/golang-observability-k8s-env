@@ -5,7 +5,7 @@ all:
       ansible_host: 192.168.100.101
       tags:
         - master
-      var_hostname: eksmaster
+      var_hostname: k8smaster
     node0:
       ansible_host: 192.168.100.183
       tags:
@@ -19,6 +19,14 @@ all:
       tags:
         - worker
       var_hostname: k8snode1
+      var_disk: sdb
+      label: kubernetes.io/role=worker
+      node_type: node-type=worker
+    node2:
+      ansible_host: 192.168.100.100
+      tags:
+        - worker
+      var_hostname: k8snode2
       var_disk: sdb
       label: kubernetes.io/role=worker
       node_type: node-type=worker
