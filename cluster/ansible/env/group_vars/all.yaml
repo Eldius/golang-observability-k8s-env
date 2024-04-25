@@ -1,4 +1,4 @@
 ---
-master_host: 192.168.100.101
+master_host: 192.168.0.59
 cluster_token: 0946253a-aca5-11ee-8879-00155dceca17
 storage_mount_folder: /storage01

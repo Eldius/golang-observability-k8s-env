@@ -493,6 +493,9 @@ ks-collector-configmap: ks-collector-configmap-down
 ks-collector-configmap-down:
 	-kubectl delete configmap -n observability collector-config-files
 
+cluster-setup:
+	$(MAKE) -C cluster cluster-setup
+
 cluster-install:
 	$(MAKE) -C cluster k3s-install
 

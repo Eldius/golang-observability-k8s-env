@@ -10,18 +10,29 @@
       - mc
     state: present
 
+- name: Is cmdline.txt file on the new path
+  stat:
+    path: /boot/firmware/cmdline.txt
+  register: cmdline_stat_result
+
+
+- name: Set cmdline.txt file path (new path)
+  set_fact:
+    cmdline_path: "{{ '/boot/firmware/cmdline.txt' if cmdline_stat_result.stat.exists else '/boot/cmdline.txt' }}"
+
 - name: Validate cgroup memory is present
   lineinfile: 
-    path: /boot/cmdline.txt
+    path: "{{ cmdline_path }}"
     regexp: "^(.*) cgroup_memory=1 cgroup_enable=memory"
     state: absent
   check_mode: yes
   register: cgroup_memory_presence
 
-- name: Setup /boot/cmdline.txt
+
+- name: Setup cmdline.txt
   become: yes
   ansible.builtin.lineinfile:
-    path: /boot/cmdline.txt
+    path: "{{ cmdline_path }}"
     backrefs: yes
     regexp: "^(.*)$"
     line: "\\1 cgroup_memory=1 cgroup_enable=memory"
@@ -30,7 +41,7 @@
   register: cmdline_block
 
 - name: Display cmdline.txt contents
-  command: cat cmdline.txt chdir=/boot
+  command: "cat {{ cmdline_path }} chdir=/boot"
   register: command_output
 
 - name: Print to console

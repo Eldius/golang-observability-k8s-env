@@ -27,6 +27,19 @@
             --disable local-storage
       when: not k3s_bin.stat.exists
 
+    # - name: Setup K3s master node
+    #   shell: |
+    #     curl \
+    #       -sfL \
+    #       https://get.k3s.io | \
+    #       sh -s - \
+    #         --write-kubeconfig-mode 644 \
+    #         --token {{ cluster_token }} \
+    #         --node-taint CriticalAddonsOnly=true:NoExecute \
+    #         --bind-address {{ master_host }} \
+    #         --disable local-storage
+    #   when: not k3s_bin.stat.exists
+
     - name: Copiar arquivo do host remoto para o host local
       become: yes
       fetch:

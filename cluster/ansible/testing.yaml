@@ -2,18 +2,35 @@
 - name: Install k3s master node
   hosts: all
   tasks:
-    - name: testing 00
-      become: yes
-      ansible.builtin.debug:
-        msg: "{{ tags }} => {{ hostvars[inventory_hostname] | to_json }}"
+    - name: Is cmdline.txt file on the new path
+      stat:
+        path: /boot/firmware/cmdline.txt
+      register: cmdline_stat_result
 
-    - name: to file
-      local_action: copy content="{{ hostvars[inventory_hostname] | to_json }}" dest=".kube/hostvars_{{ inventory_hostname }}.json"
+    - name: cmdline.txt stat result
+      debug:
+        msg: "{{ cmdline_stat_result }}"
 
-    - name: testing o1
-      become: yes
-      ansible.builtin.debug:
-        msg: "{{ vars | to_json }}"
+    - name: Set cmdline.txt file path (new path)
+      set_fact:
+        cmdline_path: "{{ '/boot/firmware/cmdline.txt' if cmdline_stat_result.stat.exists else '/boot/cmdline.txt' }}"
 
-    - name: to file
-      local_action: copy content="{{ vars | to_json }}" dest=".kube/vars_{{ inventory_hostname }}.json"
+    - name: cmdline.txt path
+      debug:
+        msg: "{{ cmdline_path }}"
+
+    # - name: testing 00
+    #   become: yes
+    #   ansible.builtin.debug:
+    #     msg: "{{ tags }} => {{ hostvars[inventory_hostname] | to_json }}"
+
+    # - name: to file
+    #   local_action: copy content="{{ hostvars[inventory_hostname] | to_json }}" dest=".kube/hostvars_{{ inventory_hostname }}.json"
+
+    # - name: testing o1
+    #   become: yes
+    #   ansible.builtin.debug:
+    #     msg: "{{ vars | to_json }}"
+
+    # - name: to file
+    #   local_action: copy content="{{ vars | to_json }}" dest=".kube/vars_{{ inventory_hostname }}.json"

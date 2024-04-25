@@ -3,11 +3,13 @@ k3s-install:
 	ansible-playbook -i ansible/env/ ansible/k3s_master_install.yaml
 	ansible-playbook -i ansible/env/ ansible/k3s_workers_install.yaml
 	ansible -i ansible/env master -b -m lineinfile -a "path='/etc/environment' line='KUBECONFIG=/etc/rancher/k3s/k3s.yaml'"
-	sftp eldius@192.168.100.101:/etc/rancher/k3s/k3s.yaml ~/.kube/config
+	sftp eldius@192.168.0.59:/etc/rancher/k3s/k3s.yaml ~/.kube/config
 	kubectl label nodes k8snode0 kubernetes.io/role=worker
 	kubectl label nodes k8snode1 kubernetes.io/role=worker
+	kubectl label nodes k8snode2 kubernetes.io/role=worker
 	kubectl label nodes k8snode0 node-type=worker
 	kubectl label nodes k8snode1 node-type=worker
+	kubectl label nodes k8snode2 node-type=worker
 
 k3s-uninstall:
 	ansible-playbook -i ansible/env/ ansible/k3s_uninstall.yaml
@@ -48,10 +50,18 @@ storage-uninstall:
 storage-tests:
 	ansible-playbook -i ansible/env ansible/storage.yaml
 
-cluster-setup: nodes-setup metallb-setup storage-setup
+# cluster-setup: nodes-setup metallb-setup storage-setup
+
+# cluster-setup: k3s-install metallb-uninstall
+
+cluster-setup: k3s-install storage-install metallb-install
 
 ping-hosts:
-	ansible -i ansible/env cube -a "uname -a"
+	# ansible -i ansible/env cube -a "uname -a"
+	ansible -i ansible/env/ all -m ping -v
 
-testing:
-	kubectl delete -f testing
+# testing:
+# 	kubectl delete -f testing
+
+test-ansible:
+	ansible-playbook -i ansible/env ansible/testing.yaml

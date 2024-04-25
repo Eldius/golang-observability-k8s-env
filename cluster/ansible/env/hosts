@@ -2,12 +2,12 @@
 all:
   hosts:
     master:
-      ansible_host: 192.168.100.101
+      ansible_host: 192.168.0.59
       tags:
         - master
       var_hostname: k8smaster
     node0:
-      ansible_host: 192.168.100.183
+      ansible_host: 192.168.0.145
       tags:
         - worker
       var_hostname: k8snode0
@@ -15,19 +15,19 @@ all:
       label: kubernetes.io/role=worker
       node_type: node-type=worker
     node1:
-      ansible_host: 192.168.100.196
+      ansible_host: 192.168.0.68
       tags:
         - worker
       var_hostname: k8snode1
-      var_disk: sdb
+      var_disk: sda
       label: kubernetes.io/role=worker
       node_type: node-type=worker
     node2:
-      ansible_host: 192.168.100.100
+      ansible_host: 192.168.0.166
       tags:
         - worker
       var_hostname: k8snode2
-      var_disk: sdb
+      var_disk: sda
       label: kubernetes.io/role=worker
       node_type: node-type=worker
   children:
@@ -35,8 +35,10 @@ all:
       hosts:
         node0:
         node1:
+        node2:
     cube:
       hosts:
         master:
         node0:
         node1:
+        node2:
