@@ -505,8 +505,11 @@ cluster-uninstall:
 cluster-tests:
 	ansible-playbook -i cluster/ansible/env/ ansible/cluster/testing.yaml
 
-cluster-network:
-	$(MAKE) -C cluster cluster-network
+cluster-network-install:
+	$(MAKE) -C cluster metallb-install
+
+cluster-network-config:
+	$(MAKE) -C cluster metallb-config
 
 metallb-install:
 	$(MAKE) -C cluster metallb-install
@@ -534,3 +537,9 @@ observability:
 
 observability-down:
 	$(MAKE) ks-observability-down-opensearch
+
+test1:
+	until kubectl --request-timeout=10 get nodes; do \
+		echo "Try again" ;\
+		sleep 10 ; \
+	done
