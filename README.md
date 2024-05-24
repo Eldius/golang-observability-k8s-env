@@ -33,15 +33,15 @@ ansible -i cluster/ansible/env/ all -m ping -v
 # opensearch
 
 ## healthchceck
-curl --insecure -XGET https://192.168.100.195:9200/_cluster/health -u 'admin:admin' | jq .
+curl --insecure -XGET https://192.168.0.195:9200/_cluster/health -u 'admin:admin' | jq .
 
 ## cat indexes
-curl --insecure -i https://192.168.100.195:9200/_cat/indices?v -u 'admin:admin'
+curl --insecure -i https://192.168.0.195:9200/_cat/indices?v -u 'admin:admin'
 
 # dashboards
-curl --insecure -XGET 'http://192.168.100.195:5601/api/saved_objects/_find?type=index-pattern&search_fields=title&search=*application*' -u 'admin:admin'
+curl --insecure -XGET 'http://192.168.0.195:5601/api/saved_objects/_find?type=index-pattern&search_fields=title&search=*application*' -u 'admin:admin'
 
-curl --insecure -XGET 'http://192.168.100.195:9200/custom-application-logs-00001' -u 'admin:admin'
+curl --insecure -XGET 'http://192.168.0.195:9200/custom-application-logs-00001' -u 'admin:admin'
 
 ```
 

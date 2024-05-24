@@ -18,7 +18,7 @@ spec:
       port: 2021
       targetPort: 2021
   type: LoadBalancer
-  loadBalancerIP: 192.168.100.205
+  loadBalancerIP: 192.168.0.205
   selector:
     app: data-prepper
 status:

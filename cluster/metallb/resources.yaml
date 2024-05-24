@@ -16,16 +16,3 @@ metadata:
 spec:
   ipAddressPools:
   - default-pool
----
-apiVersion: metallb.io/v1beta1
-kind: BGPAdvertisement
-metadata:
-  name: default
-  namespace: metallb-system
-spec:
-  ipAddressPools:
-  - default-pool
-  aggregationLength: 32
-  localPref: 100
-  communities:
-  - 65535:65282

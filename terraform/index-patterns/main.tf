@@ -15,7 +15,7 @@ terraform {
 
 provider "opensearch" {
   # Configuration options
-  # url="https://192.168.100.196:9200"
+  # url="https://192.168.0.196:9200"
   username="admin"
   password="admin"
   insecure = true
