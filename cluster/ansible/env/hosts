@@ -11,6 +11,7 @@ all:
       tags:
         - worker
       var_hostname: k8snode0
+      # TODO find a way to identify the unmounted disk
       var_disk: sdb
       label: kubernetes.io/role=worker
       node_type: node-type=worker
@@ -19,7 +20,8 @@ all:
       tags:
         - worker
       var_hostname: k8snode1
-      var_disk: sda
+      # TODO find a way to identify the unmounted disk
+      var_disk: sdb
       label: kubernetes.io/role=worker
       node_type: node-type=worker
     node2:
@@ -27,6 +29,7 @@ all:
       tags:
         - worker
       var_hostname: k8snode2
+      # TODO find a way to identify the unmounted disk
       var_disk: sda
       label: kubernetes.io/role=worker
       node_type: node-type=worker
