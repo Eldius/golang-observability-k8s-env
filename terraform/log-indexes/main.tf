@@ -34,4 +34,5 @@ resource "opensearch_index" "logs" {
   })
   mappings           = file("${path.module}/mappings/log-index.json")
   # mappings           = "{}"
+  force_destroy = true
 }
